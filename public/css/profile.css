@@ -1,0 +1,326 @@
+/* css/profile.css */
+/* Styling khusus halaman profil pelajar / mentor / mitra */
+
+/* ===== LAYOUT ===== */
+.profile-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 28px;
+    max-width: 1100px;
+    margin: 36px auto;
+    padding: 0 24px 60px;
+    align-items: start;
+}
+
+/* ===== SIDEBAR ===== */
+.profile-sidebar {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 28px 20px;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+    position: sticky;
+    top: 90px;
+}
+
+.avatar-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.avatar-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+    color: white;
+    font-size: 2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Sora', sans-serif;
+    box-shadow: 0 8px 24px rgba(67,56,202,0.25);
+}
+
+.profile-sidebar h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.sidebar-badge {
+    display: inline-block;
+    background: #eef2ff;
+    color: var(--secondary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin: 10px 0 16px;
+}
+
+.sidebar-info {
+    text-align: left;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-info-item {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    background: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 8px;
+    word-break: break-word;
+}
+
+/* ===== MAIN PANEL ===== */
+.profile-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ===== NOTIFIKASI ===== */
+.notif {
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.notif-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.notif-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+/* ===== KARTU PROFIL ===== */
+.profile-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--card-shadow);
+}
+
+.profile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.profile-card-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.danger-card {
+    border: 1.5px solid #fecaca;
+}
+
+.danger-card .profile-card-header h3 {
+    color: #dc2626;
+}
+
+/* ===== INFO GRID (VIEW MODE) ===== */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #f8fafc;
+    padding: 14px 16px;
+    border-radius: 10px;
+}
+
+.info-item-full {
+    grid-column: 1 / -1;
+}
+
+.info-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.info-val {
+    font-size: 0.97rem;
+    color: var(--text);
+    font-weight: 600;
+    word-break: break-word;
+}
+
+/* ===== FORM GRID (EDIT MODE) ===== */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group-full {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: white;
+    transition: border-color 0.2s;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--secondary);
+}
+
+/* ===== TOMBOL ===== */
+.btn-edit {
+    background: #eef2ff;
+    color: var(--secondary);
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+}
+.btn-edit:hover { background: #e0e7ff; }
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.btn-cancel {
+    background: #f1f5f9;
+    color: var(--text-muted);
+    border: none;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+.btn-cancel:hover { background: #e2e8f0; }
+
+.btn-save {
+    background: var(--secondary);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+.btn-save:hover:not(:disabled) { background: var(--secondary-light); }
+.btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+.btn-danger:hover:not(:disabled) { background: #b91c1c; }
+.btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-danger-outline {
+    background: transparent;
+    color: #dc2626;
+    border: 2px solid #dc2626;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+.btn-danger-outline:hover {
+    background: #fee2e2;
+}
+
+/* ===== NAV ROLE BADGE ===== */
+.nav-role-badge {
+    background: #eef2ff;
+    color: var(--secondary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .profile-container {
+        grid-template-columns: 1fr;
+    }
+    .profile-sidebar {
+        position: static;
+    }
+    .info-grid,
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .info-item-full,
+    .form-group-full {
+        grid-column: 1;
+    }
+}
