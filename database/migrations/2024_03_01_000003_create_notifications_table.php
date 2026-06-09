@@ -8,13 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('pelajar', function (Blueprint $table) {
+        Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id')->unique();
-            $table->string('universitas')->nullable();
-            $table->string('jurusan')->nullable();
-            $table->unsignedSmallInteger('angkatan')->nullable();
-            $table->text('bio')->nullable();
+            $table->uuid('user_id')->index();
+            $table->string('type', 100);
+            $table->json('data')->nullable();
+            $table->timestamp('read_at')->nullable()->index();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
@@ -23,6 +22,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('pelajar');
+        Schema::dropIfExists('notifications');
     }
 };

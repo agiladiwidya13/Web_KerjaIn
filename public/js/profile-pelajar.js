@@ -31,12 +31,23 @@ function isiTampilan(d) {
     const initials = (d.nama_lengkap || 'U').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
     document.getElementById('avatar-initials').textContent = initials;
 
+    const imgEl = document.getElementById('avatar-img');
+    const initialsEl = document.getElementById('avatar-initials');
+    if (d.foto_profil) {
+        imgEl.src = '/' + d.foto_profil;
+        imgEl.style.display = 'block';
+        initialsEl.style.display = 'none';
+    } else {
+        imgEl.style.display = 'none';
+        initialsEl.style.display = 'flex';
+    }
+
     document.getElementById('sidebar-nama').textContent  = d.nama_lengkap || '—';
     document.getElementById('sidebar-email').textContent = d.email || '—';
     document.getElementById('sidebar-info').innerHTML = `
-        <div class="sidebar-info-item">🏛️ ${d.universitas || 'Belum diisi'}</div>
-        <div class="sidebar-info-item">📚 ${d.jurusan || 'Belum diisi'}</div>
-        <div class="sidebar-info-item">📅 Angkatan ${d.angkatan || '—'}</div>
+        <div class="sidebar-info-item"><span class="material-icons icon-inline">account_balance</span> ${d.universitas || 'Belum diisi'}</div>
+        <div class="sidebar-info-item"><span class="material-icons icon-inline">menu_book</span> ${d.jurusan || 'Belum diisi'}</div>
+        <div class="sidebar-info-item"><span class="material-icons icon-inline">calendar_today</span> Angkatan ${d.angkatan || '—'}</div>
     `;
 
     document.getElementById('v-nama').textContent        = d.nama_lengkap  || '—';
@@ -84,7 +95,7 @@ function simpanProfil() {
     }
 
     document.getElementById('btn-save').disabled = true;
-    document.getElementById('btn-save').textContent = '⏳ Menyimpan...';
+    document.getElementById('btn-save').textContent = 'Menyimpan...';
 
     const formData = new FormData();
     formData.append('nama_lengkap',  document.getElementById('e-nama').value.trim());
@@ -97,17 +108,17 @@ function simpanProfil() {
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                tampilNotif('✅ ' + data.message, 'success');
+                tampilNotif(data.message, 'success');
                 loadProfil();
                 setTimeout(() => cancelEdit(), 1200);
             } else {
-                tampilNotif('❌ ' + data.message, 'error');
+                tampilNotif(data.message, 'error');
             }
         })
-        .catch(() => tampilNotif('❌ Gagal terhubung ke server.', 'error'))
+        .catch(() => tampilNotif('Gagal terhubung ke server.', 'error'))
         .finally(() => {
             document.getElementById('btn-save').disabled = false;
-            document.getElementById('btn-save').textContent = '💾 Simpan Perubahan';
+            document.getElementById('btn-save').textContent = 'Simpan Perubahan';
         });
 }
 
@@ -123,10 +134,10 @@ function hapusAkun() {
         tampilNotif('Masukkan password untuk konfirmasi penghapusan.', 'error');
         return;
     }
-    if (!confirm('⚠️ Yakin ingin menghapus akun? Semua data kamu akan hilang permanen!')) return;
+    if (!confirm('Yakin ingin menghapus akun? Semua data kamu akan hilang permanen!')) return;
 
     document.getElementById('btn-del').disabled = true;
-    document.getElementById('btn-del').textContent = '⏳ Menghapus...';
+    document.getElementById('btn-del').textContent = 'Menghapus...';
 
     const formData = new FormData();
     formData.append('password_confirm', pass);
@@ -135,18 +146,18 @@ function hapusAkun() {
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                tampilNotif('✅ ' + data.message + ' Mengalihkan...', 'success');
+                tampilNotif(data.message + ' Mengalihkan...', 'success');
                 setTimeout(() => window.location.href = '/', 1500);
             } else {
-                tampilNotif('❌ ' + data.message, 'error');
+                tampilNotif(data.message, 'error');
                 document.getElementById('btn-del').disabled = false;
-                document.getElementById('btn-del').textContent = '🗑️ Hapus Akun Saya';
+                document.getElementById('btn-del').textContent = 'Hapus Akun Saya';
             }
         })
         .catch(() => {
-            tampilNotif('❌ Gagal terhubung ke server.', 'error');
+            tampilNotif('Gagal terhubung ke server.', 'error');
             document.getElementById('btn-del').disabled = false;
-            document.getElementById('btn-del').textContent = '🗑️ Hapus Akun Saya';
+            document.getElementById('btn-del').textContent = 'Hapus Akun Saya';
         });
 }
 
@@ -160,10 +171,109 @@ function tampilNotif(pesan, tipe) {
 }
 
 function handleLogout() {
-    const confirmed = confirm('Apakah Anda yakin ingin keluar?');
-    if (!confirmed) return;
-    
     fetch('/api/logout', { method: 'POST', credentials: 'same-origin' })
         .then(() => { window.location.href = '/'; })
         .catch(() => { window.location.href = '/'; });
+}
+
+function uploadFotoProfil(input) {
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+    if (file.size > 2 * 1024 * 1024) {
+        tampilNotif('Ukuran file maksimal 2 MB', 'error');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('foto', file);
+
+    tampilNotif('Sedang mengupload foto...', 'success');
+
+    fetch('/api/upload-foto', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.json().then(err => { throw err; });
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            tampilNotif('Foto profil berhasil diubah!', 'success');
+            loadProfil();
+            if (typeof loadSession === 'function') {
+                loadSession();
+            }
+        } else {
+            tampilNotif(data.message, 'error');
+        }
+    })
+    .catch(err => {
+        const msg = err.errors && err.errors.foto ? err.errors.foto[0] : (err.message || 'Gagal mengupload foto.');
+        tampilNotif(msg, 'error');
+    });
+}
+
+function gantiPassword() {
+    const current = document.getElementById('p-current').value;
+    const newPass = document.getElementById('p-new').value;
+    const confirmPass = document.getElementById('p-confirm').value;
+
+    if (!current || !newPass || !confirmPass) {
+        tampilNotif('Semua field password wajib diisi!', 'error');
+        return;
+    }
+
+    if (newPass.length < 8) {
+        tampilNotif('Password baru minimal 8 karakter!', 'error');
+        return;
+    }
+
+    if (newPass !== confirmPass) {
+        tampilNotif('Konfirmasi password baru tidak cocok!', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('btn-change-pass');
+    btn.disabled = true;
+    btn.textContent = 'Mengubah password...';
+
+    const formData = new FormData();
+    formData.append('current_password', current);
+    formData.append('new_password', newPass);
+    formData.append('new_password_confirmation', confirmPass);
+
+    fetch('/api/change-password', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.json().then(err => { throw err; });
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            tampilNotif('Password berhasil diubah!', 'success');
+            document.getElementById('p-current').value = '';
+            document.getElementById('p-new').value = '';
+            document.getElementById('p-confirm').value = '';
+        } else {
+            tampilNotif(data.message, 'error');
+        }
+    })
+    .catch(err => {
+        const msg = err.errors && err.errors.new_password ? err.errors.new_password[0] : (err.message || 'Gagal mengubah password.');
+        tampilNotif(msg, 'error');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.textContent = 'Ganti Password';
+    });
 }

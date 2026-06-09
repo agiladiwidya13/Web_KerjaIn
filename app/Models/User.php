@@ -14,16 +14,16 @@ class User extends Authenticatable
     protected $keyType   = 'string';
 
     protected $fillable = [
-        'id', 'nama_lengkap', 'email', 'password_hash', 'role', 'foto_profil',
+        'id', 'nama_lengkap', 'email', 'password', 'role', 'foto_profil',
     ];
 
-    protected $hidden = ['password_hash'];
+    protected $hidden = ['password', 'remember_token'];
 
-    // Eloquent pakai password_hash bukan password
-    public function getAuthPassword()
-    {
-        return $this->password_hash;
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+
+    // ── Relationships ────────────────────────────────────────
 
     public function pelajar()
     {
@@ -38,5 +38,35 @@ class User extends Authenticatable
     public function mitra()
     {
         return $this->hasOne(Mitra::class, 'user_id');
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'pelajar_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'user_id');
+    }
+
+    public function badges()
+    {
+        return $this->hasMany(UserBadge::class, 'user_id');
+    }
+
+    // ── Helpers ──────────────────────────────────────────────
+
+    /**
+     * Mendapatkan profil sesuai role.
+     */
+    public function profile()
+    {
+        return match ($this->role) {
+            'pelajar' => $this->pelajar,
+            'mentor'  => $this->mentor,
+            'mitra'   => $this->mitra,
+            default   => null,
+        };
     }
 }

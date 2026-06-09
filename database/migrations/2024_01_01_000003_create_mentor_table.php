@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('mentor', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('user_id')->unique();
+            $table->uuid('mitra_id')->nullable()->index();
             $table->string('profesi')->nullable();
             $table->string('perusahaan')->nullable();
             $table->unsignedTinyInteger('tahun_pengalaman')->default(0);
@@ -18,6 +19,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('mitra_id')->references('id')->on('mitra')->onDelete('set null');
         });
     }
 

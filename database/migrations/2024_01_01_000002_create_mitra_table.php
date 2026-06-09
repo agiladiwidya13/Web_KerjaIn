@@ -15,9 +15,13 @@ return new class extends Migration
             $table->string('bidang_usaha')->nullable();
             $table->string('kota')->nullable();
             $table->string('kontak_bisnis')->nullable();
+            $table->string('email_domain', 100);
+            $table->string('logo_perusahaan')->nullable();
+            $table->string('website')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unique('email_domain', 'mitra_email_domain_unique');
         });
     }
 

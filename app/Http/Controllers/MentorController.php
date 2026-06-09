@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -10,7 +11,15 @@ class MentorController extends Controller
 {
     private function getUser()
     {
-        return User::find(session('user_id'));
+        $userId = session('user_id');
+        if (! $userId) {
+            abort(response()->json(['status' => 'error', 'message' => 'Belum login'], 401));
+        }
+        $user = User::find($userId);
+        if (! $user) {
+            abort(response()->json(['status' => 'error', 'message' => 'User tidak ditemukan'], 401));
+        }
+        return $user;
     }
 
     /** GET /api/mentor/profile */
@@ -18,6 +27,17 @@ class MentorController extends Controller
     {
         $user = $this->getUser();
         $m    = $user->mentor;
+
+        // [*] Load afiliasi mitra
+        $mitraData = null;
+        if ($m->mitra_id) {
+            $mitra = $m->mitra;
+            $mitraData = [
+                'nama_usaha'      => $mitra->nama_usaha,
+                'email_domain'    => $mitra->email_domain,
+                'logo_perusahaan' => $mitra->logo_perusahaan,
+            ];
+        }
 
         return response()->json([
             'status' => 'success',
@@ -29,6 +49,7 @@ class MentorController extends Controller
                 'perusahaan'       => $m->perusahaan,
                 'tahun_pengalaman' => $m->tahun_pengalaman,
                 'bio_keahlian'     => $m->bio_keahlian,
+                'mitra'            => $mitraData,
             ],
         ]);
     }
@@ -67,7 +88,7 @@ class MentorController extends Controller
 
         $user = $this->getUser();
 
-        if (! Hash::check($request->password_confirm, $user->password_hash)) {
+        if (! Hash::check($request->password_confirm, $user->password)) {
             return response()->json(['status' => 'error', 'message' => 'Password salah, penghapusan dibatalkan'], 403);
         }
 
@@ -78,6 +99,58 @@ class MentorController extends Controller
             'status'   => 'success',
             'message'  => 'Akun mentor berhasil dihapus.',
             'redirect' => '/',
+        ]);
+    }
+
+    /** GET /api/mentor/dashboard */
+    public function dashboard()
+    {
+        $user   = $this->getUser();
+        $mentor = $user->mentor;
+
+        // [*] Program yang di-handle mentor ini (via afiliasi)
+        $programs = $mentor->programs()
+            ->with('mitra')
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id'         => $p->id,
+                    'judul'      => $p->judul,
+                    'perusahaan' => $p->mitra->nama_usaha,
+                    'bidang'     => $p->bidang,
+                    'status'     => $p->status,
+                    'enrollments'=> $p->enrollments()->count(),
+                ];
+            });
+
+        // Submission menunggu review
+        $pendingCount = Submission::where('status', 'menunggu')
+            ->whereHas('enrollment.program', function ($q) use ($mentor) {
+                $q->where('mitra_id', $mentor->mitra_id);
+            })
+            ->count();
+
+        // Total yang sudah di-review
+        $reviewedCount = $mentor->reviewedSubmissions()->count();
+
+        // Afiliasi info
+        $afiliasi = null;
+        if ($mentor->mitra) {
+            $afiliasi = [
+                'nama_usaha'      => $mentor->mitra->nama_usaha,
+                'logo_perusahaan' => $mentor->mitra->logo_perusahaan,
+            ];
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'nama'          => $user->nama_lengkap,
+                'programs'      => $programs,
+                'pending_review'=> $pendingCount,
+                'total_reviewed'=> $reviewedCount,
+                'afiliasi'      => $afiliasi,
+            ],
         ]);
     }
 }

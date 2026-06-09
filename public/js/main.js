@@ -2,17 +2,7 @@
 // Script utama untuk index.html
 // Menangani: login, daftar, cek session, navigasi modal
 
-const programs = [
-    { company:"Bank Mandiri", title:"Investment Banking Virtual Experience", hours:"4-5 Jam", cat:"finance", img:"https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=200&q=75&auto=format&fit=crop", emoji:"🏦" },
-    { company:"GoTo Group", title:"Software Engineering Simulation", hours:"5-6 Jam", cat:"tech", img:"https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=200&q=75&auto=format&fit=crop", emoji:"💻" },
-    { company:"BCG Indonesia", title:"Strategy Consulting Job Simulation", hours:"3-4 Jam", cat:"consulting", img:"https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=200&q=75&auto=format&fit=crop", emoji:"📊" },
-    { company:"Unilever", title:"Digital Marketing Simulation", hours:"2-3 Jam", cat:"marketing", img:"https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=400&h=200&q=75&auto=format&fit=crop", emoji:"📱" },
-    { company:"Tokopedia", title:"Product Management Experience", hours:"4-5 Jam", cat:"tech", img:"https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&h=200&q=75&auto=format&fit=crop", emoji:"🛍️" },
-    { company:"BCA", title:"Retail Banking Simulation", hours:"3-4 Jam", cat:"finance", img:"https://images.unsplash.com/photo-1601597111158-2fceff292cdc?w=400&h=200&q=75&auto=format&fit=crop", emoji:"💳" },
-    { company:"Deloitte Indonesia", title:"Tax & Advisory Consulting", hours:"4-6 Jam", cat:"consulting", img:"https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=400&h=200&q=75&auto=format&fit=crop", emoji:"⚖️" },
-    { company:"Shopee", title:"Growth Marketing Simulation", hours:"2-3 Jam", cat:"marketing", img:"https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=400&h=200&q=75&auto=format&fit=crop", emoji:"🎯" },
-];
-
+let apiPrograms = [];
 let currentFilter = 'semua';
 let currentRole   = 'pelajar';
 let pendingTab    = 'masuk';
@@ -22,8 +12,28 @@ let pendingTab    = 'masuk';
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     checkSession();
-    renderHomeGrid();
+    fetchPrograms();
+    
+    // Check if session has expired
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('expired') === '1') {
+        showGlobalToast('Sesi Anda telah berakhir. Silakan login kembali.', 'error');
+        // Clean URL parameter without page reload
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 });
+
+function showGlobalToast(msg, type = 'success') {
+    let t = document.getElementById('global-toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'global-toast';
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.className = 'toast toast-' + type + ' show';
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
 
 function checkSession() {
     fetch('/api/session')
@@ -40,34 +50,94 @@ function checkSession() {
 function updateNavLoggedIn(user) {
     const roleLabel = { pelajar: 'Mahasiswa', mentor: 'Mentor', mitra: 'Mitra' };
     const profileUrl = {
-        pelajar: '/pages/pelajar/profile',
-        mentor:  '/pages/mentor/profile',
-        mitra:   '/pages/mitra/profile'
+        pelajar: '/pages/pelajar/dashboard',
+        mentor:  '/pages/mentor/dashboard',
+        mitra:   '/pages/mitra/dashboard'
     };
     document.getElementById('nav-auth').innerHTML = `
         <a href="${profileUrl[user.role]}" class="btn-outline" style="font-weight:600;">
-            👤 ${user.nama.split(' ')[0]}
+            <span class="material-icons icon-inline">bar_chart</span>Dashboard
         </a>
         <a href="#" onclick="handleLogout()" class="btn-solid" style="background:#ef4444;">Keluar</a>
     `;
 }
 
 // ============================================================
-// RENDER KARTU PROGRAM
+// FETCH & RENDER PROGRAM DARI API
 // ============================================================
+const bidangIcons = {
+    'teknologi': 'code', 'tech': 'code', 'desain': 'palette', 'design': 'palette',
+    'keuangan': 'account_balance', 'finance': 'account_balance', 'marketing': 'campaign',
+    'konsultansi': 'bar_chart', 'consulting': 'bar_chart', 'data': 'trending_up',
+    'bisnis': 'business', 'business': 'business',
+};
+
+function getIcon(bidang) {
+    if (!bidang) return 'list_alt';
+    const key = bidang.toLowerCase();
+    for (const [k, v] of Object.entries(bidangIcons)) {
+        if (key.includes(k)) return v;
+    }
+    return 'list_alt';
+}
+
+function getCatFromBidang(bidang) {
+    if (!bidang) return 'lainnya';
+    const b = bidang.toLowerCase();
+    if (b.includes('teknologi') || b.includes('tech') || b.includes('software') || b.includes('engineering')) return 'tech';
+    if (b.includes('keuangan') || b.includes('finance') || b.includes('banking')) return 'finance';
+    if (b.includes('marketing') || b.includes('pemasaran')) return 'marketing';
+    if (b.includes('konsultansi') || b.includes('consulting')) return 'consulting';
+    if (b.includes('desain') || b.includes('design')) return 'desain';
+    return 'lainnya';
+}
+
+function fetchPrograms() {
+    fetch('/api/programs', {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            apiPrograms = data.data || [];
+        } else {
+            apiPrograms = [];
+        }
+        renderHomeGrid();
+        renderExploreGrid();
+    })
+    .catch(() => {
+        apiPrograms = [];
+        renderHomeGrid();
+        renderExploreGrid();
+    });
+}
+
 function createCard(p) {
+    const iconName = getIcon(p.bidang);
+    const iconHtml = `<span class="material-icons" style="font-size:3rem;">${iconName}</span>`;
+    const enrolled = p.enrolled || 0;
+    const kuotaText = p.kuota ? `${enrolled}/${p.kuota} peserta` : `${enrolled} peserta`;
+    const periode = p.tanggal_mulai ? `${p.tanggal_mulai}` : 'Fleksibel';
+    
+    const coverHtml = p.cover_image 
+        ? `<img src="${p.cover_image}" alt="${p.judul}" style="width:100%; height:100%; object-fit:cover;">`
+        : `<div style="background:linear-gradient(135deg, var(--primary-light), var(--primary)); height:100%; display:flex; align-items:center; justify-content:center; color:white;">
+                ${iconHtml}
+            </div>`;
+    
     return `<div class="card">
         <div class="card-image">
-            <img src="${p.img}" alt="${p.title}" onerror="this.parentElement.innerHTML='<div style=\'background:#eef2ff;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;\'>${p.emoji}</div>'" loading="lazy">
-            <div class="card-image-overlay"><div class="card-emoji-badge">${p.emoji}</div></div>
+            ${coverHtml}
+            <div class="card-image-overlay"><div class="card-emoji-badge"><span class="material-icons" style="font-size:1.5rem;">${iconName}</span></div></div>
         </div>
         <div class="card-content">
-            <p class="company-name">${p.company}</p>
-            <h3 class="job-title">${p.title}</h3>
+            <p class="company-name">${p.perusahaan}</p>
+            <h3 class="job-title">${p.judul}</h3>
             <div class="tags">
-                <span class="tag-pill">⏱ ${p.hours}</span>
-                <span class="tag-pill">🆓 Gratis</span>
-                <span class="tag-pill">🎓 Sertifikat</span>
+                <span class="tag-pill"><span class="material-icons icon-inline">${iconName}</span>${p.bidang || 'Umum'}</span>
+                <span class="tag-pill"><span class="material-icons icon-inline">group</span>${kuotaText}</span>
+                <span class="tag-pill"><span class="material-icons icon-inline">calendar_today</span>${periode}</span>
             </div>
             <button class="btn-start" onclick="openRoleModal('daftar')">Ambil Peluang →</button>
         </div>
@@ -75,18 +145,35 @@ function createCard(p) {
 }
 
 function renderHomeGrid() {
-    document.getElementById('home-grid').innerHTML = programs.slice(0, 4).map(createCard).join('');
+    const grid = document.getElementById('home-grid');
+    if (!grid) return;
+    if (apiPrograms.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;grid-column:1/-1;">Belum ada program yang tersedia saat ini.</p>';
+        return;
+    }
+    grid.innerHTML = apiPrograms.slice(0, 4).map(createCard).join('');
 }
 
 function renderExploreGrid() {
-    const q = (document.getElementById('search-input').value || '').toLowerCase();
-    const filtered = programs.filter(p => {
-        const matchCat = currentFilter === 'semua' || p.cat === currentFilter;
-        const matchQ   = !q || p.company.toLowerCase().includes(q) || p.title.toLowerCase().includes(q);
+    const searchEl = document.getElementById('search-input');
+    const q = (searchEl ? searchEl.value : '').toLowerCase();
+    const filtered = apiPrograms.filter(p => {
+        const cat = getCatFromBidang(p.bidang);
+        const matchCat = currentFilter === 'semua' || cat === currentFilter;
+        const matchQ = !q || 
+            (p.perusahaan || '').toLowerCase().includes(q) || 
+            (p.judul || '').toLowerCase().includes(q) ||
+            (p.bidang || '').toLowerCase().includes(q);
         return matchCat && matchQ;
     });
-    document.getElementById('explore-grid').innerHTML = filtered.map(createCard).join('');
-    document.getElementById('empty-state').style.display = filtered.length ? 'none' : 'block';
+    const grid = document.getElementById('explore-grid');
+    if (grid) {
+        grid.innerHTML = filtered.map(createCard).join('');
+    }
+    const emptyState = document.getElementById('empty-state');
+    if (emptyState) {
+        emptyState.style.display = filtered.length ? 'none' : 'block';
+    }
 }
 
 function filterCards() { renderExploreGrid(); }
@@ -131,21 +218,22 @@ function openAuthModal(role) {
     const mitraExtra = document.getElementById('mitra-extra');
 
     if (role === 'pelajar') {
-        badge.textContent = '🎓 Mahasiswa';
+        badge.textContent = 'Mahasiswa';
+        badge.innerHTML = '<span class="material-icons icon-inline">school</span>Mahasiswa';
         badge.className = 'modal-role-badge student';
         mitraExtra.style.display = 'none';
         document.getElementById('reg-name').placeholder = 'Nama lengkap kamu';
         document.getElementById('login-email').placeholder = 'mahasiswa@email.com';
         document.getElementById('reg-email').placeholder = 'mahasiswa@email.com';
     } else if (role === 'mitra') {
-        badge.textContent = '🏢 Perusahaan';
+        badge.innerHTML = '<span class="material-icons icon-inline">business</span>Perusahaan';
         badge.className = 'modal-role-badge company';
         mitraExtra.style.display = 'block';
         document.getElementById('reg-name').placeholder = 'Nama PIC / HR';
         document.getElementById('login-email').placeholder = 'hr@perusahaan.com';
         document.getElementById('reg-email').placeholder = 'hr@perusahaan.com';
     } else if (role === 'mentor') {
-        badge.textContent = '👨‍🏫 Mentor';
+        badge.innerHTML = '<span class="material-icons icon-inline">person</span>Mentor';
         badge.className = 'modal-role-badge mentor';
         mitraExtra.style.display = 'none';
         document.getElementById('reg-name').placeholder = 'Nama lengkap Anda';
@@ -212,7 +300,7 @@ function handleMasuk(event) {
     if (!email || !pass) { showAlert('Mohon isi email dan password.', 'error'); return; }
     if (!email.includes('@')) { showAlert('Format email tidak valid.', 'error'); return; }
 
-    showAlert('⏳ Memproses login...', 'success');
+    showAlert('Processing login...', 'success');
     document.getElementById('btn-masuk').disabled = true;
 
     const formData = new FormData();
@@ -220,21 +308,27 @@ function handleMasuk(event) {
     formData.append('password', pass);
     formData.append('role', currentRole);
 
-    fetch('/api/login', { method: 'POST', body: formData })
+    fetch('/api/login', { 
+        method: 'POST', 
+        headers: {
+            'Accept': 'application/json'
+        },
+        body: formData 
+    })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                showAlert('✅ ' + data.message, 'success');
+                showAlert(data.message, 'success');
                 setTimeout(() => {
                     window.location.href = data.redirect;
                 }, 1000);
             } else {
-                showAlert('❌ ' + data.message, 'error');
+                showAlert(data.message, 'error');
                 document.getElementById('btn-masuk').disabled = false;
             }
         })
         .catch(() => {
-            showAlert('❌ Gagal terhubung ke server. Pastikan XAMPP aktif.', 'error');
+            showAlert('Gagal terhubung ke server. Pastikan XAMPP aktif.', 'error');
             document.getElementById('btn-masuk').disabled = false;
         });
 }
@@ -256,7 +350,7 @@ function handleDaftar(event) {
     if (!email.includes('@')) { showAlert('Format email tidak valid.', 'error'); return; }
     if (pass.length < 8) { showAlert('Password minimal 8 karakter.', 'error'); return; }
 
-    showAlert('⏳ Membuat akun...', 'success');
+    showAlert('Creating account...', 'success');
     document.getElementById('btn-daftar').disabled = true;
 
     const formData = new FormData();
@@ -268,19 +362,25 @@ function handleDaftar(event) {
         formData.append('nama_usaha', document.getElementById('reg-usaha').value.trim());
     }
 
-    fetch('/api/register', { method: 'POST', body: formData })
+    fetch('/api/register', { 
+        method: 'POST', 
+        headers: {
+            'Accept': 'application/json'
+        },
+        body: formData 
+    })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                showAlert('🎉 ' + data.message, 'success');
+                showAlert(data.message, 'success');
                 setTimeout(() => switchTab('masuk'), 1800);
             } else {
-                showAlert('❌ ' + data.message, 'error');
+                showAlert(data.message, 'error');
             }
             document.getElementById('btn-daftar').disabled = false;
         })
         .catch(() => {
-            showAlert('❌ Gagal terhubung ke server. Pastikan XAMPP aktif.', 'error');
+            showAlert('Gagal terhubung ke server. Pastikan XAMPP aktif.', 'error');
             document.getElementById('btn-daftar').disabled = false;
         });
 }
@@ -291,9 +391,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModa
 // LOGOUT
 // ============================================================
 function handleLogout() {
-    const confirmed = confirm('Apakah Anda yakin ingin keluar?');
-    if (!confirmed) return;
-    
     fetch('/api/logout', { method: 'POST' })
         .then(() => { window.location.href = '/'; })
         .catch(() => { window.location.href = '/'; });

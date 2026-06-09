@@ -12,9 +12,11 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('nama_lengkap');
             $table->string('email')->unique();
-            $table->string('password_hash');
+            $table->string('password');
             $table->enum('role', ['pelajar', 'mentor', 'mitra']);
             $table->string('foto_profil')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->rememberToken();
             $table->timestamps();
         });
     }

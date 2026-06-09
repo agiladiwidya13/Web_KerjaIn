@@ -6,6 +6,8 @@
     <title>KerjaIn - Masa Depan Cerah</title>
     <link rel="icon" type="image/png" href="image/logo-kerjain.png">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Extended" rel="stylesheet">
     <!-- Cara manggil file style.css -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
@@ -35,7 +37,7 @@
 <div id="page-home" class="page active">
     <section class="hero">
         <div class="hero-left">
-            <div class="hero-badge">🚀 50+ Program Aktif dari Perusahaan Top Indonesia</div>
+            <div class="hero-badge"><span class="material-icons icon-inline">rocket</span>50+ Program Aktif dari Perusahaan Top Indonesia</div>
             <h1>Terangi Karirmu<br>dengan Pengalaman<br>Nyata</h1>
             <p>Jembatan antara bangku kuliah dan dunia profesional. Selesaikan simulasi dari industri terbaik dan raih masa depan cerahmu.</p>
             <div class="hero-cta">
@@ -75,21 +77,21 @@
         <div class="testimonial-grid">
             <div class="testimonial-card">
                 <img class="testi-avatar" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=100&h=100&q=80&auto=format&fit=crop&crop=face" alt="Putri" onerror="this.style.display='none'">
-                <div class="testi-stars">★★★★★</div>
+                <div class="testi-stars"><span class="material-icons">star</span><span class="material-icons">star</span><span class="material-icons">star</span><span class="material-icons">star</span><span class="material-icons">star</span></div>
                 <p class="testi-text">"Setelah menyelesaikan simulasi BCG di KerjaIn, saya percaya diri melamar magang konsultan. Alhamdulillah langsung diterima!"</p>
                 <div class="testi-name">Putri Ramadhani</div>
                 <div class="testi-role">Mahasiswa Manajemen, UI · Intern di BCG</div>
             </div>
             <div class="testimonial-card">
                 <img class="testi-avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&q=80&auto=format&fit=crop&crop=face" alt="Dimas" onerror="this.style.display='none'">
-                <div class="testi-stars">★★★★★</div>
+                <div class="testi-stars"><span class="material-icons">star</span><span class="material-icons">star</span><span class="material-icons">star</span><span class="material-icons">star</span><span class="material-icons">star</span></div>
                 <p class="testi-text">"Simulasi GoTo sangat mirip dengan pekerjaan nyata. HR bilang sertifikat KerjaIn-ku jadi pembeda di antara ratusan pelamar."</p>
                 <div class="testi-name">Dimas Pratama</div>
                 <div class="testi-role">Mahasiswa Teknik Informatika, ITS · Intern di GoTo</div>
             </div>
             <div class="testimonial-card">
                 <img class="testi-avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&q=80&auto=format&fit=crop&crop=face" alt="Anisa" onerror="this.style.display='none'">
-                <div class="testi-stars">★★★★★</div>
+                <div class="testi-stars"><span class="material-icons">star</span><span class="material-icons">star</span><span class="material-icons">star</span><span class="material-icons">star</span><span class="material-icons">star</span></div>
                 <p class="testi-text">"Platform gratis terbaik yang pernah ada! Saya dari daerah dan tidak bisa magang offline, KerjaIn jadi jembatan saya ke dunia kerja."</p>
                 <div class="testi-name">Anisa Fitri</div>
                 <div class="testi-role">Mahasiswa Akuntansi, Unhas · Intern di BCA</div>
@@ -110,15 +112,16 @@
             <input type="text" id="search-input" placeholder="Cari program, perusahaan, atau bidang..." oninput="filterCards()">
         </div>
         <button class="filter-chip active" onclick="setFilter(this,'semua')">Semua</button>
-        <button class="filter-chip" onclick="setFilter(this,'tech')">💻 Teknologi</button>
-        <button class="filter-chip" onclick="setFilter(this,'finance')">🏦 Keuangan</button>
-        <button class="filter-chip" onclick="setFilter(this,'marketing')">📢 Marketing</button>
-        <button class="filter-chip" onclick="setFilter(this,'consulting')">📊 Konsultansi</button>
+        <button class="filter-chip" onclick="setFilter(this,'tech')"><span class="material-icons icon-inline">code</span>Teknologi</button>
+        <button class="filter-chip" onclick="setFilter(this,'desain')"><span class="material-icons icon-inline">palette</span>Desain</button>
+        <button class="filter-chip" onclick="setFilter(this,'finance')"><span class="material-icons icon-inline">account_balance</span>Keuangan</button>
+        <button class="filter-chip" onclick="setFilter(this,'marketing')"><span class="material-icons icon-inline">campaign</span>Marketing</button>
+        <button class="filter-chip" onclick="setFilter(this,'consulting')"><span class="material-icons icon-inline">bar_chart</span>Konsultansi</button>
     </div>
     <div class="container">
         <div class="program-grid" id="explore-grid"></div>
         <div id="empty-state" style="display:none;text-align:center;padding:60px 20px;color:var(--text-muted);">
-            <div style="font-size:3rem;margin-bottom:16px;">🔍</div>
+            <div style="font-size:3rem;margin-bottom:16px;"><span class="material-icons icon-large">search</span></div>
             <h3 style="margin-bottom:8px;color:var(--text);">Tidak ada hasil</h3>
             <p>Coba kata kunci lain atau pilih kategori yang berbeda.</p>
         </div>
@@ -163,23 +166,23 @@
 <!-- ===== ROLE PICKER MODAL ===== -->
 <div class="modal-overlay" id="role-modal-overlay" onclick="handleRoleOverlayClick(event)">
     <div class="role-modal">
-        <button class="role-modal-close" onclick="closeAllModals()">✕</button>
+        <button class="role-modal-close" onclick="closeAllModals()"><span class="material-icons">close</span></button>
         <div class="role-modal-logo">KerjaIn</div>
         <h3 id="role-modal-title">Masuk ke KerjaIn</h3>
         <p id="role-modal-sub">Pilih peran Anda untuk melanjutkan</p>
         <div class="role-cards">
             <div class="role-card student" onclick="openAuthModal('pelajar')">
-                <span class="role-icon">🎓</span>
+                <span class="material-icons role-icon">school</span>
                 <h4>Untuk Mahasiswa</h4>
                 <p>Ikuti program simulasi kerja, kembangkan skill, dan raih sertifikat industri</p>
             </div>
             <div class="role-card company" onclick="openAuthModal('mitra')">
-                <span class="role-icon">🏢</span>
+                <span class="material-icons role-icon">business</span>
                 <h4>Untuk Perusahaan</h4>
                 <p>Buat program simulasi, temukan bakat terbaik, dan perkuat employer branding</p>
             </div>
             <div class="role-card mentor" onclick="openAuthModal('mentor')">
-                <span class="role-icon">👨‍🏫</span>
+                <span class="material-icons role-icon">person</span>
                 <h4>Untuk Mentor</h4>
                 <p>Berbagi keahlian, bantu mahasiswa berkembang, dan bentuk generasi profesional</p>
             </div>
@@ -190,10 +193,10 @@
 <!-- ===== AUTH FORM MODAL ===== -->
 <div class="modal-overlay" id="auth-modal" onclick="handleAuthOverlayClick(event)">
     <div class="modal">
-        <button class="modal-close" onclick="closeAllModals()">✕</button>
+        <button class="modal-close" onclick="closeAllModals()"><span class="material-icons">close</span></button>
         <div class="modal-header-top">
             <button class="modal-back" onclick="backToRolePicker()" title="Kembali">←</button>
-            <span class="modal-role-badge" id="role-badge">🎓 Mahasiswa</span>
+            <span class="modal-role-badge" id="role-badge"><span class="material-icons md-18" style="margin-right: 6px;">school</span>Mahasiswa</span>
         </div>
         <div class="modal-logo">KerjaIn</div>
         <h3 id="modal-title">Selamat Datang Kembali</h3>

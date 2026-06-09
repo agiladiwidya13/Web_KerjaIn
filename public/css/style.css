@@ -10,6 +10,10 @@
             --accent: #fef3c7;
             --card-shadow: 0 10px 30px rgba(0,0,0,0.06);
             --radius: 16px;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --info: #3b82f6;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -485,7 +489,8 @@
 
         .testi-name { font-weight: 700; font-size: 0.92rem; }
         .testi-role { font-size: 0.79rem; opacity: 0.6; margin-top: 2px; }
-        .testi-stars { color: var(--primary); font-size: 0.9rem; margin-bottom: 12px; }
+        .testi-stars { color: var(--primary); font-size: 0.9rem; margin-bottom: 12px; display: flex; gap: 2px; justify-content: center; }
+        .testi-stars .material-icons { font-size: 1.1rem; }
 
         /* ===== JELAJAHI PAGE ===== */
         .explore-header {
@@ -831,6 +836,10 @@
             line-height: 1;
         }
 
+        .role-card.student .role-icon { color: var(--secondary); }
+        .role-card.company .role-icon { color: var(--primary-hover); }
+        .role-card.mentor .role-icon { color: #10b981; }
+
         .role-card h4 {
             font-family: 'Sora', sans-serif;
             font-weight: 800;
@@ -1144,3 +1153,171 @@
 
 
         
+/* ===== TOAST ===== */
+.toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: #1e293b;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    z-index: 9999;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+}
+.toast.show {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+.toast-error {
+    border-left: 4px solid #ef4444;
+}
+.toast-success {
+    border-left: 4px solid #10b981;
+}
+.toast-warning {
+    border-left: 4px solid #f59e0b;
+}
+
+/* ── Material Icons Helper Styling ──────────────────────────── */
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
+    color: inherit;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+.material-icons.md-18 { font-size: 18px; }
+.material-icons.md-24 { font-size: 24px; }
+.material-icons.md-36 { font-size: 36px; }
+.material-icons.md-48 { font-size: 48px; }
+
+.material-icons.md-dark { color: rgba(0, 0, 0, 0.54); }
+.material-icons.md-dark.md-inactive { color: rgba(0, 0, 0, 0.26); }
+
+.material-icons.md-light { color: rgba(255, 255, 255, 1); }
+.material-icons.md-light.md-inactive { color: rgba(255, 255, 255, 0.3); }
+
+/* Icon classes for common use cases */
+.icon-inline {
+    display: inline;
+    font-size: 1em;
+    vertical-align: -3px;
+    margin-right: 6px;
+}
+
+.icon-large {
+    font-size: 2.5rem;
+    display: block;
+    margin: 0 auto 12px;
+}
+
+.icon-badge {
+    font-size: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+/* ===== GLOBAL BADGES ===== */
+.nav-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 50px !important;
+    line-height: 1;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 50px !important;
+    line-height: 1;
+}
+
+/* ===== DARK MODE BASE OVERRIDES ===== */
+body.dark-mode {
+    --bg: #0f172a;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --white: #1e293b;
+    --accent: #334155;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --warning: #f59e0b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --info: #3b82f6;
+}
+
+body.dark-mode nav {
+    background: rgba(30, 41, 59, 0.95) !important;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid #334155;
+}
+
+body.dark-mode .modal,
+body.dark-mode .role-modal {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+body.dark-mode .role-card {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+body.dark-mode .role-modal-close,
+body.dark-mode .modal-close,
+body.dark-mode .modal-back {
+    background: #334155;
+    color: #f8fafc;
+}
+
+body.dark-mode .form-group input {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #334155;
+}
+
+body.dark-mode .form-group input:focus {
+    background: #1e293b;
+}
+
+body.dark-mode .tab-switch {
+    background: #334155;
+}
+
+body.dark-mode .tab-btn {
+    color: #94a3b8;
+}
+
+body.dark-mode .tab-btn.active {
+    background: #1e293b;
+    color: #f8fafc;
+}
+

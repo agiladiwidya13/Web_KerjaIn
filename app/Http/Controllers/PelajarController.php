@@ -10,7 +10,15 @@ class PelajarController extends Controller
 {
     private function getUser()
     {
-        return User::find(session('user_id'));
+        $userId = session('user_id');
+        if (! $userId) {
+            abort(response()->json(['status' => 'error', 'message' => 'Belum login'], 401));
+        }
+        $user = User::find($userId);
+        if (! $user) {
+            abort(response()->json(['status' => 'error', 'message' => 'User tidak ditemukan'], 401));
+        }
+        return $user;
     }
 
     /** GET /api/pelajar/profile */
@@ -33,6 +41,7 @@ class PelajarController extends Controller
                 'jurusan'      => $p->jurusan,
                 'angkatan'     => $p->angkatan,
                 'bio'          => $p->bio,
+                'total_poin'   => $p->total_poin,
             ],
         ]);
     }
@@ -71,7 +80,7 @@ class PelajarController extends Controller
 
         $user = $this->getUser();
 
-        if (! Hash::check($request->password_confirm, $user->password_hash)) {
+        if (! Hash::check($request->password_confirm, $user->password)) {
             return response()->json(['status' => 'error', 'message' => 'Password salah, penghapusan dibatalkan'], 403);
         }
 
@@ -82,6 +91,79 @@ class PelajarController extends Controller
             'status'   => 'success',
             'message'  => 'Akun pelajar berhasil dihapus.',
             'redirect' => '/',
+        ]);
+    }
+
+    /** GET /api/pelajar/dashboard */
+    public function dashboard()
+    {
+        $user = $this->getUser();
+        $p    = $user->pelajar;
+
+        // Active enrollments
+        $enrollments = $user->enrollments()
+            ->with(['program.mitra', 'program.tasks'])
+            ->where('status', 'aktif')
+            ->get()
+            ->map(function ($e) {
+                return [
+                    'id'           => $e->id,
+                    'program'      => $e->program->judul,
+                    'perusahaan'   => $e->program->mitra->nama_usaha,
+                    'bidang'       => $e->program->bidang,
+                    'progress'     => $e->progressPercent(),
+                    'total_tasks'  => $e->program->tasks->count(),
+                    'enrolled_at'  => $e->enrolled_at?->format('d M Y'),
+                ];
+            });
+
+        // Completed count
+        $completed = $user->enrollments()->where('status', 'selesai')->count();
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'nama'        => $user->nama_lengkap,
+                'total_poin'  => $p->total_poin ?? 0,
+                'enrollments' => $enrollments,
+                'completed'   => $completed,
+            ],
+        ]);
+    }
+
+    /** GET /profil/{id} (Web Route) */
+    public function publicProfile($id)
+    {
+        $pelajar = \App\Models\Pelajar::with(['user', 'portfolios.enrollment.program.mitra', 'certificates.enrollment.program'])
+            ->findOrFail($id);
+
+        return view('pages.pelajar.public-profile', compact('pelajar'));
+    }
+
+    /** GET /api/pelajar/leaderboard */
+    public function leaderboard()
+    {
+        $leaderboard = \App\Models\Pelajar::with(['user.badges.badge'])
+            ->orderByDesc('total_poin')
+            ->limit(10)
+            ->get()
+            ->map(function ($p, $index) {
+                return [
+                    'rank' => $index + 1,
+                    'id' => $p->id,
+                    'nama' => $p->user->nama_lengkap,
+                    'universitas' => $p->universitas,
+                    'total_poin' => $p->total_poin,
+                    'badges' => $p->user->badges->map(fn($ub) => [
+                        'nama' => $ub->badge->nama,
+                        'icon' => $ub->badge->icon_url
+                    ])
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $leaderboard
         ]);
     }
 }
