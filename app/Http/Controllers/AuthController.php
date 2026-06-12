@@ -35,6 +35,8 @@ class AuthController extends Controller
 
         $request->validate($rules);
 
+        $mitra = null;
+
         // [*] Untuk Mentor: validasi email domain vs Mitra terdaftar
         if ($request->role === 'mentor') {
             $domain = Mitra::extractDomain($request->email);

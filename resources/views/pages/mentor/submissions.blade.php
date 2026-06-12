@@ -50,7 +50,7 @@
     <div class="dash-modal">
         <h3><span class="material-icons icon-inline">description</span>Review Tugas</h3>
         
-        <div style="background:#f8fafc;padding:16px;border-radius:12px;margin-bottom:20px;border:1px solid var(--dash-border);">
+        <div style="background:var(--dash-bg);padding:16px;border-radius:12px;margin-bottom:20px;border:1px solid var(--dash-border);">
             <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;">Peserta</div>
             <div style="font-weight:600;margin-bottom:12px;" id="rev-pelajar">-</div>
             
@@ -58,7 +58,7 @@
             <div style="font-weight:600;margin-bottom:12px;" id="rev-task">-</div>
 
             <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;">Catatan Pengerjaan</div>
-            <div style="white-space:pre-line;background:white;padding:12px;border-radius:8px;border:1px solid var(--dash-border);" id="rev-catatan">-</div>
+            <div style="white-space:pre-line;background:var(--dash-card);padding:12px;border-radius:8px;border:1px solid var(--dash-border);" id="rev-catatan">-</div>
 
             <div id="rev-file-link" style="margin-top:12px;"></div>
         </div>
@@ -66,8 +66,8 @@
         <div class="form-group">
             <label>Keputusan Review *</label>
             <select id="rev-status" onchange="toggleNilaiInput(this.value)">
-                <option value="disetujui"><span class="material-icons icon-inline">check_circle</span>Disetujui (Lulus)</option>
-                <option value="revisi"><span class="material-icons icon-inline">warning</span>Perlu Revisi</option>
+                <option value="disetujui">Disetujui (Lulus)</option>
+                <option value="revisi">Perlu Revisi</option>
             </select>
         </div>
         
@@ -142,7 +142,7 @@ function loadSubmissions(statusFilter) {
                 if (s.status === 'revisi') statusBadge = '<span class="badge badge-danger">Revisi</span>';
 
                 return `
-                    <div class="submission-item" style="cursor:pointer;background:white;" onclick="openReviewModal('${s.id}')">
+                    <div class="submission-item" style="cursor:pointer;background:var(--dash-card);" onclick="openReviewModal('${s.id}')">
                         <div class="sub-status ${s.status}"></div>
                         <div class="sub-info">
                             <h4>${s.task_judul}</h4>

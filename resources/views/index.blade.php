@@ -135,7 +135,7 @@
         <div class="about-hero-overlay"></div>
         <div class="about-hero-content">
             <h2>Tentang KerjaIn</h2>
-            <p>Kami percaya setiap mahasiswa Indonesia berhak mendapatkan akses ke pengalaman profesional berkelas dunia — tanpa biaya.</p>
+            <p>Kami percaya setiap mahasiswa Indonesia berhak mendapatkan akses ke pengalaman profesional berkelas dunia.</p>
         </div>
     </div>
     <div class="about-content">
@@ -155,9 +155,9 @@
             <h3>Tim di Balik KerjaIn</h3>
             <p>Sekelompok anak muda yang percaya teknologi bisa mengubah karir jutaan mahasiswa Indonesia.</p>
             <div class="team-grid">
-                <div class="team-card"><img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=200&q=80&auto=format&fit=crop&crop=top" alt="Agil"><div class="team-card-body"><h4>Agil Adiwidya</h4><p>Co-Founder & CEO</p></div></div>
-                <div class="team-card"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=200&q=80&auto=format&fit=crop&crop=top" alt="Asti"><div class="team-card-body"><h4>Asti Sofiana</h4><p>Co-Founder & CTO</p></div></div>
-                <div class="team-card"><img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=200&q=80&auto=format&fit=crop&crop=top" alt="Ferdian"><div class="team-card-body"><h4>Ferdian</h4><p>Co-Founder & TI</p></div></div>
+                <div class="team-card"><img src="image/foto-agil.jpeg" alt="Agil"><div class="team-card-body"><h4>Agil Adiwidya</h4><p>Co-Founder & CEO</p></div></div>
+                <div class="team-card"><img src="image/foto-asti.jpeg" alt="Asti"><div class="team-card-body"><h4>Asti Sofiana</h4><p>Co-Founder & CTO</p></div></div>
+                <div class="team-card"><img src="image/foto-ferdian.png" alt="Ferdian"><div class="team-card-body"><h4>Ferdian</h4><p>Co-Founder & TI</p></div></div>
             </div>
         </div>
     </div>

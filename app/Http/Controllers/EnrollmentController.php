@@ -122,12 +122,22 @@ class EnrollmentController extends Controller
 
         $tasks = $enrollment->program->tasks->map(function ($task) use ($enrollment) {
             $submission = $enrollment->submissions->where('task_id', $task->id)->first();
+
+            // Cek apakah ada task sebelumnya (urutan lebih kecil) yang belum disetujui
+            $isLocked = $enrollment->program->tasks
+                ->where('urutan', '<', $task->urutan)
+                ->contains(function ($prevTask) use ($enrollment) {
+                    $prevSubmission = $enrollment->submissions->where('task_id', $prevTask->id)->first();
+                    return !$prevSubmission || $prevSubmission->status !== 'disetujui';
+                });
+
             return [
                 'id'        => $task->id,
                 'judul'     => $task->judul,
                 'deskripsi' => $task->deskripsi,
                 'deadline'  => $task->deadline?->format('d M Y H:i'),
                 'urutan'    => $task->urutan,
+                'is_locked' => $isLocked,
                 'submission'=> $submission ? [
                     'id'       => $submission->id,
                     'status'   => $submission->status,

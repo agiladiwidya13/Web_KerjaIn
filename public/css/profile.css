@@ -115,11 +115,11 @@
     word-break: break-word;
 }
 
-/* ===== MAIN PANEL ===== */
 .profile-main {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    flex: 1;
 }
 
 /* ===== NOTIFIKASI ===== */

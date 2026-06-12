@@ -66,6 +66,7 @@
             justify-content: center !important;
         }
         .status-none { background: #cbd5e1; }
+        .status-locked { background: #e2e8f0; color: #64748b !important; }
         .status-menunggu { background: var(--dash-warning); }
         .status-disetujui { background: var(--dash-success); }
         .status-revisi { background: var(--dash-danger); }
@@ -123,6 +124,10 @@
         }
         body.dark-mode .status-none {
             background: #475569;
+        }
+        body.dark-mode .status-locked {
+            background: #1e293b;
+            color: #475569 !important;
         }
     </style>
 </head>
@@ -233,7 +238,11 @@ function renderTaskList() {
         let statusIcon = '<span class="material-icons icon-inline">hourglass_empty</span>';
         let statusText = 'Belum dikerjakan';
 
-        if (sub) {
+        if (t.is_locked) {
+            statusClass = 'status-locked';
+            statusIcon = '<span class="material-icons icon-inline" style="font-size: 14px;">lock</span>';
+            statusText = 'Tugas dikunci';
+        } else if (sub) {
             statusClass = 'status-' + sub.status;
             if (sub.status === 'menunggu') { statusIcon = '<span class="material-icons icon-inline">hourglass_empty</span>'; statusText = 'Menunggu Review'; }
             if (sub.status === 'disetujui') { statusIcon = '<span class="material-icons icon-inline">check_circle</span>'; statusText = 'Disetujui'; }
@@ -257,6 +266,18 @@ function viewTask(taskId) {
     renderTaskList(); // update active state
 
     const t = globalTasks.find(x => x.id === taskId);
+    
+    if (t.is_locked) {
+        document.getElementById('task-content').innerHTML = `
+            <div style="text-align:center;padding:48px 20px;">
+                <span class="material-icons" style="font-size:4rem;color:var(--text-muted);margin-bottom:16px;">lock</span>
+                <h3 style="margin:0 0 8px;font-family:'Sora',sans-serif;">Tugas ini Dikunci</h3>
+                <p style="color:var(--text-muted);margin:0 auto;max-width:360px;line-height:1.5;">Anda harus menyelesaikan dan mendapatkan persetujuan untuk seluruh tugas sebelumnya terlebih dahulu.</p>
+            </div>
+        `;
+        return;
+    }
+
     const sub = t.submission;
     const isApproved = sub && sub.status === 'disetujui';
     const isPending = sub && sub.status === 'menunggu';

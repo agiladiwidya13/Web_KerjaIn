@@ -161,12 +161,16 @@ body.dark-mode .program-item .prog-icon {
     bottom: 0;
     overflow-y: auto;
     z-index: 10;
+    transition: width 0.3s ease;
 }
 
 .dash-sidebar .sidebar-header {
     padding: 0 20px 20px;
     border-bottom: 1px solid var(--dash-border);
     margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .dash-sidebar .sidebar-header h3 {
@@ -213,7 +217,59 @@ body.dark-mode .program-item .prog-icon {
     flex: 1;
     margin-left: 260px;
     padding: 32px;
-    max-width: 1200px;
+    max-width: calc(100% - 260px);
+    transition: margin-left 0.3s ease, max-width 0.3s ease;
+}
+
+/* ── Collapsible Sidebar ─────────────────────────────────── */
+
+.dash-sidebar.collapsed {
+    width: 80px;
+}
+
+.dash-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.dash-sidebar.collapsed .sidebar-header h3 {
+    display: none;
+}
+
+.dash-sidebar.collapsed .nav-item {
+    font-size: 0;
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.dash-sidebar.collapsed + .dash-main,
+.dash-sidebar.collapsed ~ .dash-main {
+    margin-left: 80px;
+    max-width: calc(100% - 80px);
+}
+
+.btn-collapse-sidebar {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: transform 0.3s ease, background 0.2s;
+}
+
+.btn-collapse-sidebar:hover {
+    background: var(--dash-bg);
+    color: var(--dash-accent);
+}
+
+.dash-sidebar.collapsed .btn-collapse-sidebar {
+    transform: rotate(180deg);
 }
 
 /* ── Welcome Header ──────────────────────────────────────── */

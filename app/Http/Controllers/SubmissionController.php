@@ -48,6 +48,35 @@ class SubmissionController extends Controller
             ->where('status', 'aktif')
             ->firstOrFail();
 
+        // Ambil data task
+        $task = \App\Models\Task::findOrFail($request->task_id);
+
+        if ($task->program_id !== $enrollment->program_id) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Task tidak valid untuk program ini.',
+            ], 422);
+        }
+
+        // Cek pengerjaan bertahap: apakah ada task sebelumnya (urutan lebih kecil) yang belum disetujui
+        $incompleteTaskExists = \App\Models\Task::where('program_id', $task->program_id)
+            ->where('urutan', '<', $task->urutan)
+            ->whereNotExists(function ($query) use ($enrollment) {
+                $query->select('id')
+                    ->from('submissions')
+                    ->whereColumn('submissions.task_id', 'tasks.id')
+                    ->where('submissions.enrollment_id', $enrollment->id)
+                    ->where('submissions.status', 'disetujui');
+            })
+            ->exists();
+
+        if ($incompleteTaskExists) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Tugas ini dikunci. Anda harus menyelesaikan tugas sebelumnya terlebih dahulu.',
+            ], 422);
+        }
+
         // Cek apakah sudah submit task ini
         $existing = Submission::where('enrollment_id', $enrollment->id)
             ->where('task_id', $request->task_id)

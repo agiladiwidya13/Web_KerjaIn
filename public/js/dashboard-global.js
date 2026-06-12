@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDarkMode();
     initNotifications();
     initSessionProfile();
+    initSidebarToggle();
 });
 
 function initDarkMode() {
@@ -182,3 +183,30 @@ function initSessionProfile() {
 }
 
 window.loadSession = initSessionProfile;
+
+function initSidebarToggle() {
+    const sidebar = document.querySelector('.dash-sidebar');
+    if (!sidebar) return;
+
+    const header = sidebar.querySelector('.sidebar-header');
+    if (!header) return;
+
+    if (!header.querySelector('.btn-collapse-sidebar')) {
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'btn-collapse-sidebar';
+        toggleBtn.innerHTML = '<span class="material-icons">chevron_left</span>';
+        toggleBtn.title = 'Kecilkan/Besarkan Sidebar';
+        
+        toggleBtn.onclick = () => {
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebar_collapsed', isCollapsed ? 'yes' : 'no');
+        };
+        
+        header.appendChild(toggleBtn);
+    }
+
+    if (localStorage.getItem('sidebar_collapsed') === 'yes') {
+        sidebar.classList.add('collapsed');
+    }
+}
