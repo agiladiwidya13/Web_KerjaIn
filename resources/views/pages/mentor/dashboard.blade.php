@@ -20,7 +20,7 @@
         KerjaIn
     </div>
     <div class="nav-links">
-        <span class="nav-role-badge" style="background:#d1fae5;color:#065f46;"><span class="material-icons icon-inline">person</span>Mentor</span>
+        <span class="nav-role-badge" style="background:#d1fae5;color:#065f46;"><span class="material-icons" style="font-size: 18px; margin-right: 6px; display: inline-flex; vertical-align: middle;">person</span>Mentor</span>
     </div>
     <div class="nav-auth">
         <span id="nav-nama" style="font-weight:600;color:var(--secondary);padding:8px 12px;"></span>
@@ -40,13 +40,19 @@
             <h3>Menu Mentor</h3>
         </div>
         <a class="nav-item active" href="/pages/mentor/dashboard">
-            <span class="nav-icon"><span class="material-icons">bar_chart</span></span> Dashboard
+            <span class="material-icons nav-icon">bar_chart</span> Dashboard
+        </a>
+        <a class="nav-item" href="/pages/mentor/explore">
+            <span class="material-icons nav-icon">explore</span> Jelajahi Program
+        </a>
+        <a class="nav-item" href="/pages/mentor/applications">
+            <span class="material-icons nav-icon">assignment_turned_in</span> Lamaran Saya
         </a>
         <a class="nav-item" href="/pages/mentor/submissions">
-            <span class="nav-icon"><span class="material-icons">description</span></span> Review Tugas
+            <span class="material-icons nav-icon">description</span> Review Tugas
         </a>
         <a class="nav-item" href="/pages/mentor/profile">
-            <span class="nav-icon"><span class="material-icons">account_circle</span></span> Profil Saya
+            <span class="material-icons nav-icon">account_circle</span> Profil Saya
         </a>
     </aside>
 
@@ -108,6 +114,7 @@
             }
             document.getElementById('nav-nama').textContent = d.user.nama.split(' ')[0];
             loadDashboard();
+            setInterval(loadDashboard, 30000);
         })
         .catch(() => window.location.href = '/');
 })();

@@ -24,17 +24,33 @@ document.addEventListener('DOMContentLoaded', () => {
     initSidebarToggle();
 });
 
+function getOrCreateNavRight() {
+    const navAuth = document.querySelector('.nav-auth');
+    if (!navAuth) return null;
+    
+    let navRight = document.getElementById('nav-right-container');
+    if (!navRight) {
+        navRight = document.createElement('div');
+        navRight.id = 'nav-right-container';
+        navRight.style.display = 'flex';
+        navRight.style.alignItems = 'center';
+        navRight.style.gap = '12px';
+        navAuth.parentNode.insertBefore(navRight, navAuth);
+        navRight.appendChild(navAuth);
+    }
+    return navRight;
+}
+
 function initDarkMode() {
     const isDark = localStorage.getItem('theme') === 'dark';
     if (isDark) {
         document.body.classList.add('dark-mode');
     }
 
-    const navAuth = document.querySelector('.nav-auth');
-    if (navAuth) {
+    const navRight = getOrCreateNavRight();
+    if (navRight) {
         const toggleBtn = document.createElement('button');
         toggleBtn.className = 'btn-dash btn-dash-outline';
-        toggleBtn.style.marginRight = '8px';
         toggleBtn.style.padding = '6px 12px';
         toggleBtn.style.display = 'flex';
         toggleBtn.style.alignItems = 'center';
@@ -55,13 +71,14 @@ function initDarkMode() {
             }
         };
 
-        navAuth.prepend(toggleBtn);
+        const navAuth = document.querySelector('.nav-auth');
+        navRight.insertBefore(toggleBtn, navAuth);
     }
 }
 
 function initNotifications() {
-    const navAuth = document.querySelector('.nav-auth');
-    if (!navAuth) return;
+    const navRight = getOrCreateNavRight();
+    if (!navRight) return;
 
     // Tambahkan komponen lonceng
     const notifContainer = document.createElement('div');
@@ -93,7 +110,8 @@ function initNotifications() {
         }
     });
 
-    navAuth.prepend(notifContainer);
+    const navAuth = document.querySelector('.nav-auth');
+    navRight.insertBefore(notifContainer, navAuth);
 
     // Fetch initial
     fetchNotifications();
@@ -149,8 +167,8 @@ function initSessionProfile() {
                     navNama.textContent = data.user.nama;
                 }
                 
-                const navAuth = document.querySelector('.nav-auth');
-                if (navAuth) {
+                const navRight = getOrCreateNavRight();
+                if (navRight) {
                     let navImg = document.getElementById('nav-avatar-img');
                     if (!navImg) {
                         navImg = document.createElement('img');
@@ -161,13 +179,9 @@ function initSessionProfile() {
                         navImg.style.objectFit = 'cover';
                         navImg.style.marginRight = '8px';
                         navImg.style.border = '2px solid var(--secondary)';
-                        // Try insertion after the theme toggle button if present, otherwise prepended
-                        const toggleBtn = navAuth.querySelector('button');
-                        if (toggleBtn) {
-                            toggleBtn.after(navImg);
-                        } else {
-                            navAuth.prepend(navImg);
-                        }
+                        
+                        const navAuth = document.querySelector('.nav-auth');
+                        navRight.insertBefore(navImg, navAuth);
                     }
                     if (data.user.foto_profil) {
                         navImg.src = data.user.foto_profil;

@@ -31,9 +31,16 @@
             flex: 1;
             padding: 14px 24px;
             border-radius: 50px;
-            border: none;
+            border: 1px solid var(--dash-border);
+            background: var(--dash-card);
+            color: var(--text);
             font-size: 1rem;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            outline: none;
+            transition: all 0.2s;
+        }
+        .search-bar input:focus {
+            border-color: var(--dash-accent);
         }
         .program-grid {
             display: grid;
@@ -44,7 +51,7 @@
             margin: 0 auto;
         }
         .prog-card {
-            background: white;
+            background: var(--dash-card);
             border-radius: 16px;
             overflow: hidden;
             border: 1px solid var(--dash-border);
@@ -89,7 +96,7 @@
             height: 24px;
             border-radius: 4px;
             object-fit: cover;
-            background: #e2e8f0;
+            background: var(--dash-bg);
         }
         .prog-desc {
             font-size: 0.9rem;
@@ -110,6 +117,11 @@
     </style>
 </head>
 <body style="background: var(--dash-bg);">
+<script>
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+</script>
 
 <!-- NAVIGATION -->
 <nav>
@@ -206,6 +218,12 @@ function loadPrograms() {
                         <div class="company-info">
                             ${logo} ${p.perusahaan}
                         </div>
+                        ${p.registrasi_mulai && p.registrasi_selesai ? `
+                            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px; display:inline-flex; align-items:center; gap:4px;">
+                                <span class="material-icons" style="font-size:14px;">event_note</span>
+                                Pendaftaran: ${p.registrasi_mulai} - ${p.registrasi_selesai}
+                            </div>
+                        ` : ''}
                         <p class="prog-desc">${p.deskripsi || 'Tidak ada deskripsi.'}</p>
                         <div class="prog-footer">
                             <span class="badge badge-primary">${p.bidang || 'Umum'}</span>

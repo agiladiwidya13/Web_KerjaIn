@@ -29,6 +29,14 @@ class EnrollmentController extends Controller
         $user = $this->getUser();
         $program = Program::published()->findOrFail($programId);
 
+        // BL-P06: Check registration period is active
+        if (! $program->isRegistrationOpen()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Periode pendaftaran belum dibuka atau sudah berakhir.',
+            ], 422);
+        }
+
         // Cek apakah sudah enroll
         if ($program->enrollments()->where('pelajar_id', $user->id)->exists()) {
             return response()->json([

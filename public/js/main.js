@@ -55,10 +55,10 @@ function updateNavLoggedIn(user) {
         mitra:   '/pages/mitra/dashboard'
     };
     document.getElementById('nav-auth').innerHTML = `
-        <a href="${profileUrl[user.role]}" class="btn-outline" style="font-weight:600;">
+        <a href="${profileUrl[user.role]}" class="btn-solid" style="font-weight:600;">
             <span class="material-icons icon-inline">bar_chart</span>Dashboard
         </a>
-        <a href="#" onclick="handleLogout()" class="btn-solid" style="background:#ef4444;">Keluar</a>
+        <a href="#" onclick="handleLogout()" class="btn-outline" style="font-weight:600;">Keluar</a>
     `;
 }
 
@@ -263,7 +263,17 @@ function handleRoleOverlayClick(e) {
 }
 
 function handleAuthOverlayClick(e) {
-    if (e.target === document.getElementById('auth-modal')) closeAllModals();
+    if (e.target === document.getElementById('auth-modal')) {
+        const modalEl = document.querySelector('#auth-modal .modal');
+        if (modalEl) {
+            modalEl.classList.remove('modal-pulse');
+            void modalEl.offsetWidth; // Trigger reflow to restart animation
+            modalEl.classList.add('modal-pulse');
+            setTimeout(() => {
+                modalEl.classList.remove('modal-pulse');
+            }, 250);
+        }
+    }
 }
 
 function switchTab(tab) {
@@ -383,6 +393,14 @@ function handleDaftar(event) {
             showAlert('Gagal terhubung ke server. Pastikan XAMPP aktif.', 'error');
             document.getElementById('btn-daftar').disabled = false;
         });
+}
+
+function togglePassword(fieldId, button) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    button.querySelector('.material-icons').textContent = isHidden ? 'visibility_off' : 'visibility';
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });

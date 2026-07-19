@@ -55,6 +55,10 @@ Route::middleware('web')->group(function () {
 
         // Submit task
         Route::post('/submit', [SubmissionController::class, 'submit']);
+
+        // Pelajar: Certificates & Portfolios
+        Route::get('/certificates', [PelajarController::class, 'certificates']);
+        Route::get('/portfolios',   [PelajarController::class, 'portfolios']);
     });
  
     // ── Mentor ────────────────────────────────────────────────────────────
@@ -67,6 +71,12 @@ Route::middleware('web')->group(function () {
         // Review submissions
         Route::get('/submissions',             [SubmissionController::class, 'mentorSubmissions']);
         Route::post('/submissions/{id}/review', [SubmissionController::class, 'review']);
+
+        // Mentor: Explore & Apply
+        Route::get('/explore-programs',               [MentorController::class, 'explorePrograms']);
+        Route::post('/apply/{programId}',             [MentorController::class, 'applyToProgram']);
+        Route::post('/cancel-application/{programId}',[MentorController::class, 'cancelApplication']);
+        Route::get('/my-applications',                [MentorController::class, 'myApplications']);
     });
  
     // ── Mitra ─────────────────────────────────────────────────────────────
@@ -79,6 +89,7 @@ Route::middleware('web')->group(function () {
         Route::get('/mentors',   [MitraController::class, 'mentors']);
         Route::get('/candidates', [MitraController::class, 'searchCandidates']);
         Route::post('/upload-logo', [MitraController::class, 'uploadLogo']);
+        Route::get('/portfolio-tasks/{portfolioId}', [MitraController::class, 'getPortfolioTasks']);
 
         // Program CRUD
         Route::get('/programs',                        [ProgramController::class, 'index']);
@@ -96,6 +107,10 @@ Route::middleware('web')->group(function () {
         Route::post('/programs/{programId}/tasks',     [TaskController::class, 'store']);
         Route::post('/tasks/{id}/update',              [TaskController::class, 'update']);
         Route::post('/tasks/{id}/delete',              [TaskController::class, 'destroy']);
+
+        // Mitra: Mentor Applications Management
+        Route::get('/mentor-applications',              [ProgramController::class, 'mentorApplications']);
+        Route::post('/mentor-applications/{id}/review', [ProgramController::class, 'reviewMentorApplication']);
     });
  
 });

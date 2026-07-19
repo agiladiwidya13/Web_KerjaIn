@@ -49,6 +49,9 @@
         <a class="nav-item" id="nav-item-mentors" onclick="showSection('mentors')">
             <span class="nav-icon"><span class="material-icons">person</span></span> Mentor Saya
         </a>
+        <a class="nav-item" href="/pages/mitra/mentor-applications">
+            <span class="nav-icon"><span class="material-icons">assignment_ind</span></span> Lamaran Mentor
+        </a>
         <a class="nav-item" href="/pages/mitra/candidates">
             <span class="nav-icon"><span class="material-icons">search</span></span> Cari Kandidat
         </a>
@@ -185,21 +188,45 @@
             <label>Deskripsi</label>
             <textarea id="prog-deskripsi" rows="3" placeholder="Jelaskan program ini..."></textarea>
         </div>
-        <div class="form-group">
-            <label>Bidang</label>
-            <input type="text" id="prog-bidang" placeholder="cth: UI/UX, Backend, Marketing">
+        <div class="form-group" id="bidang-group">
+            <label for="prog-bidang">Bidang</label>
+            <div id="bidang-input-wrap">
+                <select id="prog-bidang" onchange="handleBidangChange(this)">
+                    <option value="" selected disabled>Pilih bidang</option>
+                    <option value="UI UX">UI UX</option>
+                    <option value="Design">Design</option>
+                    <option value="Akuntansi">Akuntansi</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Designer">Designer</option>
+                    <option value="Pemrograman">Pemrograman</option>
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+                <input type="text" id="prog-bidang-custom" placeholder="Masukkan bidang lain..." style="display:none; width:100%; margin-top:8px;">
+            </div>
         </div>
         <div class="form-group">
             <label>Kuota (kosongkan jika tidak terbatas)</label>
             <input type="number" id="prog-kuota" min="1" placeholder="cth: 30">
         </div>
-        <div class="form-group">
-            <label>Tanggal Mulai</label>
-            <input type="date" id="prog-mulai">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label>Pendaftaran Mulai *</label>
+                <input type="date" id="prog-reg-mulai">
+            </div>
+            <div class="form-group">
+                <label>Pendaftaran Selesai *</label>
+                <input type="date" id="prog-reg-selesai">
+            </div>
         </div>
-        <div class="form-group">
-            <label>Tanggal Selesai</label>
-            <input type="date" id="prog-selesai">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label>Program Mulai *</label>
+                <input type="date" id="prog-mulai">
+            </div>
+            <div class="form-group">
+                <label>Program Selesai *</label>
+                <input type="date" id="prog-selesai">
+            </div>
         </div>
         <div class="modal-actions">
             <button class="btn-dash btn-dash-outline" onclick="document.getElementById('create-modal').classList.remove('show')">Batal</button>
@@ -221,6 +248,7 @@
             document.getElementById('nav-nama').textContent = d.user.nama.split(' ')[0];
             loadDashboard();
             loadMentors();
+            setInterval(loadDashboard, 30000);
             
             // Check query param for section
             const urlParams = new URLSearchParams(window.location.search);
@@ -286,6 +314,11 @@ function renderPrograms(programs, containerId, limit) {
             <div class="prog-info">
                 <h4>${p.judul}</h4>
                 <p>${p.bidang || 'Umum'} · ${p.enrolled} peserta${p.kuota ? ' / ' + p.kuota + ' kuota' : ''}</p>
+                ${p.registrasi_mulai && p.registrasi_selesai ? `
+                    <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;display:inline-flex;align-items:center;gap:4px;">
+                        <span class="material-icons" style="font-size:12px;">event_note</span> Pendaftaran: ${p.registrasi_mulai} - ${p.registrasi_selesai}
+                    </p>
+                ` : ''}
             </div>
             <div class="prog-meta">
                 <span class="badge ${p.status === 'published' ? 'badge-success' : p.status === 'closed' ? 'badge-danger' : 'badge-warning'}">${p.status}</span>
@@ -315,26 +348,69 @@ function loadMentors() {
 
 // ── Create Program ──────────────────────────────────────────
 function openCreateProgram() {
+    document.getElementById('prog-judul').value = '';
+    document.getElementById('prog-deskripsi').value = '';
+    document.getElementById('prog-bidang').value = '';
+    document.getElementById('prog-bidang-custom').value = '';
+    document.getElementById('prog-bidang').style.display = 'block';
+    document.getElementById('prog-bidang-custom').style.display = 'none';
+    document.getElementById('prog-kuota').value = '';
+    document.getElementById('prog-reg-mulai').value = '';
+    document.getElementById('prog-reg-selesai').value = '';
+    document.getElementById('prog-mulai').value = '';
+    document.getElementById('prog-selesai').value = '';
     document.getElementById('create-modal').classList.add('show');
+}
+
+function handleBidangChange(select) {
+    const customInput = document.getElementById('prog-bidang-custom');
+    if (select.value === 'Lainnya') {
+        select.style.display = 'none';
+        customInput.style.display = 'block';
+        customInput.focus();
+    } else {
+        customInput.style.display = 'none';
+    }
 }
 
 function createProgram() {
     const judul = document.getElementById('prog-judul').value.trim();
     if (!judul) { showToast('Judul program wajib diisi!', 'error'); return; }
 
+    const bidangSelect = document.getElementById('prog-bidang');
+    const bidangCustom = document.getElementById('prog-bidang-custom');
+    let bidangValue = '';
+
+    if (bidangCustom && bidangCustom.offsetParent !== null) {
+        bidangValue = bidangCustom.value.trim();
+    } else {
+        bidangValue = bidangSelect ? bidangSelect.value : '';
+    }
+
+    if (!bidangValue) { showToast('Pilih bidang program terlebih dahulu.', 'error'); return; }
+
     const formData = new FormData();
     formData.append('judul', judul);
     formData.append('deskripsi', document.getElementById('prog-deskripsi').value);
-    formData.append('bidang', document.getElementById('prog-bidang').value);
+    formData.append('bidang', bidangValue);
     const kuota = document.getElementById('prog-kuota').value;
     if (kuota) formData.append('kuota', kuota);
+    const regMulai = document.getElementById('prog-reg-mulai').value;
+    if (regMulai) formData.append('registrasi_mulai', regMulai);
+    const regSelesai = document.getElementById('prog-reg-selesai').value;
+    if (regSelesai) formData.append('registrasi_selesai', regSelesai);
     const mulai = document.getElementById('prog-mulai').value;
     if (mulai) formData.append('tanggal_mulai', mulai);
     const selesai = document.getElementById('prog-selesai').value;
     if (selesai) formData.append('tanggal_selesai', selesai);
 
     fetch('/api/mitra/programs', { method: 'POST', body: formData })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) {
+                return r.json().then(err => { throw err; });
+            }
+            return r.json();
+        })
         .then(d => {
             if (d.status === 'success') {
                 showToast('Program berhasil dibuat!');
@@ -345,7 +421,7 @@ function createProgram() {
                 showToast(d.message || 'Gagal membuat program', 'error');
             }
         })
-        .catch(() => showToast('Gagal terhubung ke server', 'error'));
+        .catch(err => showToast(err.message || 'Gagal membuat program', 'error'));
 }
 // ── Chart.js Integration ───────────────────────────────────────
 let chartInstances = [];

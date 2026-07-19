@@ -20,7 +20,7 @@ class Enrollment extends Model
 
     public function pelajar()
     {
-        return $this->belongsTo(User::class, 'pelajar_id');
+        return $this->belongsTo(Pelajar::class, 'pelajar_id', 'user_id');
     }
 
     public function program()
@@ -65,5 +65,30 @@ class Enrollment extends Model
 
         $approved = $this->submissions()->where('status', 'disetujui')->count();
         return (int) round(($approved / $totalTasks) * 100);
+    }
+
+    /**
+     * Return human readable duration between enrolled_at and selesai_at.
+     * If the duration is more than 6 days, represent it in weeks + days.
+     * Inclusive of start and end date (same-day = 1 Hari).
+     */
+    public function durationHuman(): string
+    {
+        if (! $this->enrolled_at || ! $this->selesai_at) return '-';
+
+        $days = $this->enrolled_at->diffInDays($this->selesai_at) + 1;
+
+        if ($days <= 6) {
+            return $days . ' Hari';
+        }
+
+        $weeks = intdiv($days, 7);
+        $remainder = $days % 7;
+
+        $parts = [];
+        if ($weeks > 0) $parts[] = $weeks . ' Minggu';
+        if ($remainder > 0) $parts[] = $remainder . ' Hari';
+
+        return implode(' ', $parts);
     }
 }

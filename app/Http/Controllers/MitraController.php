@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Mentor;
 use App\Models\User;
 use App\Models\Enrollment;
+use App\Models\Portfolio;
+use App\Models\Task;
+use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -116,13 +119,15 @@ class MitraController extends Controller
                     'status'      => $p->status,
                     'kuota'       => $p->kuota,
                     'enrolled'    => $p->enrollments_count,
-                    'tanggal_mulai'   => $p->tanggal_mulai?->format('d M Y'),
-                    'tanggal_selesai' => $p->tanggal_selesai?->format('d M Y'),
+                    'registrasi_mulai'   => $p->registrasi_mulai?->format('d M Y'),
+                    'registrasi_selesai' => $p->registrasi_selesai?->format('d M Y'),
+                    'tanggal_mulai'      => $p->tanggal_mulai?->format('d M Y'),
+                    'tanggal_selesai'    => $p->tanggal_selesai?->format('d M Y'),
                 ];
             });
 
-        // Mentor terafiliasi
-        $mentorCount = $m->mentors()->count();
+        // Mentor yang terafiliasi dengan perusahaan melalui mitra_id
+        $mentorCount = \App\Models\Mentor::where('mitra_id', $m->id)->count();
 
         // Total pelamar baru (enrollment aktif)
         $newApplicants = 0;
@@ -146,12 +151,17 @@ class MitraController extends Controller
         ]);
     }
 
-    /** GET /api/mitra/mentors — daftar mentor terafiliasi */
+    /** GET /api/mitra/mentors — daftar mentor yang terafiliasi dengan perusahaan */
     public function mentors()
     {
         $user = $this->getUser();
+        // Hanya tampilkan mentor yang telah disetujui oleh Mitra
+        $mitraId = $user->mitra->id;
+
         $mentors = \App\Models\Mentor::with('user')
-            ->where('mitra_id', $user->mitra->id)
+            ->whereHas('approvedPrograms', function ($q) use ($mitraId) {
+                $q->where('mitra_id', $mitraId);
+            })
             ->get()
             ->map(function ($m) {
                 return [
@@ -285,6 +295,64 @@ class MitraController extends Controller
             'status'  => 'success',
             'message' => 'Logo perusahaan berhasil diupload!',
             'path'    => $path,
+        ]);
+    }
+
+    /** GET /api/mitra/portfolio-tasks/{portfolioId} */
+    /** GET /api/mitra/portfolio-tasks/{portfolioId} */
+    public function getPortfolioTasks($portfolioId)
+    {
+        $portfolio = Portfolio::find($portfolioId);
+        if (!$portfolio) {
+            return response()->json(['status' => 'error', 'message' => 'Portfolio tidak ditemukan'], 404);
+        }
+
+        // Get enrollment dari portfolio
+        $enrollment = $portfolio->enrollment;
+        if (!$enrollment) {
+            return response()->json(['status' => 'error', 'message' => 'Enrollment tidak ditemukan'], 404);
+        }
+
+        // Get tasks dari program
+        $tasks = Task::where('program_id', $enrollment->program_id)
+            ->with(['submissions' => function ($q) use ($enrollment) {
+                $q->where('enrollment_id', $enrollment->id);
+            }])
+            ->orderBy('urutan')
+            ->get()
+            ->map(function ($task) {
+                $submission = $task->submissions->first();
+                $fileUrl = null;
+                
+                // Pastikan file_url memiliki path lengkap
+                if ($submission && $submission->file_url) {
+                    $fileUrl = $submission->file_url;
+                    // Jika belum memiliki protokol, tambahkan path lengkap
+                    if (!str_starts_with($fileUrl, 'http')) {
+                        $fileUrl = asset($fileUrl);
+                    }
+                }
+                
+                return [
+                    'id' => $task->id,
+                    'judul' => $task->judul,
+                    'deskripsi' => $task->deskripsi,
+                    'deadline' => $task->deadline?->format('d M Y'),
+                    'urutan' => $task->urutan,
+                    'status' => $submission?->status ?? 'belum_submit',
+                    'file_url' => $fileUrl,
+                    'catatan' => $submission?->catatan,
+                    'nilai' => $submission?->nilai,
+                    'feedback' => $submission?->feedback,
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'program_judul' => $enrollment->program->judul,
+                'tasks' => $tasks
+            ]
         ]);
     }
 }

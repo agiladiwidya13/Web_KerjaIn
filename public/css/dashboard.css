@@ -24,7 +24,25 @@ body.dark-mode {
     --dash-border: #334155;
     --text: #f8fafc;
     --text-muted: #94a3b8;
+    --dash-accent-light: rgba(99, 102, 241, 0.15);
     color: var(--text);
+}
+
+body.dark-mode .nav-role-badge {
+    background: #1e293b !important;
+    border: 1px solid #334155;
+}
+body.dark-mode .nav-role-badge[style*="dbeafe"],
+body.dark-mode .nav-role-badge[style*="school"] {
+    color: #60a5fa !important;
+}
+body.dark-mode .nav-role-badge[style*="d1fae5"],
+body.dark-mode .nav-role-badge[style*="person"] {
+    color: #34d399 !important;
+}
+body.dark-mode .nav-role-badge[style*="fef3c7"],
+body.dark-mode .nav-role-badge[style*="business"] {
+    color: #fbbf24 !important;
 }
 
 body.dark-mode input, body.dark-mode textarea, body.dark-mode select {
@@ -147,7 +165,7 @@ body.dark-mode .program-item .prog-icon {
     display: flex;
     min-height: 100vh;
     background: var(--dash-bg);
-    padding-top: 72px;
+    padding-top: 16px;
 }
 
 .dash-sidebar {
@@ -195,6 +213,12 @@ body.dark-mode .program-item .prog-icon {
     border-left: 3px solid transparent;
 }
 
+/* Stabilize nav-item height to prevent visual shift when active */
+.dash-sidebar .nav-item {
+    line-height: 1.2;
+    min-height: 44px;
+}
+
 .dash-sidebar .nav-item:hover {
     background: var(--dash-accent-light);
     color: var(--dash-accent);
@@ -210,13 +234,21 @@ body.dark-mode .program-item .prog-icon {
 .dash-sidebar .nav-item .nav-icon {
     font-size: 1.2rem;
     width: 24px;
+    min-width: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+}
+
+.dash-sidebar .nav-item {
+    box-sizing: border-box;
 }
 
 .dash-main {
     flex: 1;
     margin-left: 260px;
-    padding: 32px;
+    padding: 16px 32px 32px;
     max-width: calc(100% - 260px);
     transition: margin-left 0.3s ease, max-width 0.3s ease;
 }
@@ -572,6 +604,25 @@ body.dark-mode .program-item .prog-icon {
 .btn-dash-primary:hover {
     background: #4338ca;
     transform: translateY(-1px);
+}
+
+.btn-dash:disabled,
+.btn-dash:disabled:hover {
+    background: #9ca3af;
+    border-color: #9ca3af;
+    color: #f8fafc;
+    cursor: not-allowed;
+    opacity: 0.75;
+    transform: none;
+}
+
+.btn-dash-outline:disabled,
+.btn-dash-outline:disabled:hover {
+    background: transparent;
+    color: #9ca3af;
+    border-color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.75;
 }
 
 .btn-dash-outline {

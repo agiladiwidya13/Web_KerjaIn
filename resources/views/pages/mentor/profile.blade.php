@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil Mentor - KerjaIn</title>
-    <link rel="icon" type="image/png" href="../../image/logo-kerjain.png">
+    <link rel="icon" type="image/png" href="{{ asset('image/logo-kerjain.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Extended" rel="stylesheet">
@@ -29,7 +29,7 @@
     </div>
 </nav>
 
-<div class="dashboard-container" style="padding-top: 72px;">
+<div class="dashboard-container">
     <!-- DASHBOARD SIDEBAR -->
     <aside class="dash-sidebar">
         <div class="sidebar-header">
@@ -37,6 +37,12 @@
         </div>
         <a class="nav-item" href="/pages/mentor/dashboard">
             <span class="material-icons nav-icon">bar_chart</span> Dashboard
+        </a>
+        <a class="nav-item" href="/pages/mentor/explore">
+            <span class="material-icons nav-icon">explore</span> Jelajahi Program
+        </a>
+        <a class="nav-item" href="/pages/mentor/applications">
+            <span class="material-icons nav-icon">assignment_turned_in</span> Lamaran Saya
         </a>
         <a class="nav-item" href="/pages/mentor/submissions">
             <span class="material-icons nav-icon">description</span> Review Tugas

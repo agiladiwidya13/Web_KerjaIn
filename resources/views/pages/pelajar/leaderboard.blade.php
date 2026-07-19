@@ -34,7 +34,7 @@
         <a class="nav-item" href="/pages/pelajar/dashboard">
             <span class="material-icons nav-icon">bar_chart</span> Dashboard
         </a>
-        <a class="nav-item" href="/pages/pelajar/profile?section=programs">
+        <a class="nav-item" href="/pages/pelajar/dashboard?section=programs">
             <span class="material-icons nav-icon">menu_book</span> Program Saya
         </a>
         <a class="nav-item" href="/pages/programs">
@@ -123,7 +123,7 @@
                 <tr style="border-bottom: 1px solid var(--dash-border);">
                     <td style="padding: 16px; ${rankStyle}">${rankEmoji} #${p.rank}</td>
                     <td style="padding: 16px; font-weight: 600;">
-                        <a href="/profil/${p.id}" target="_blank" style="color: var(--primary); text-decoration: none;">${p.nama}</a>
+                        <a href="/profil/${p.id}" style="color: var(--primary); text-decoration: none;">${p.nama}</a>
                     </td>
                     <td style="padding: 16px; color: var(--text-muted);">${p.universitas || '-'}</td>
                     <td style="padding: 16px; font-weight: 700; color: var(--warning);"><span class="material-icons icon-inline">auto_awesome</span>${p.total_poin}</td>

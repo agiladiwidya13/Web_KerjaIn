@@ -14,15 +14,44 @@
 <body style="background: var(--dash-bg);">
 
 <nav>
-    <div class="logo" onclick="window.location.href='/pages/mentor/dashboard'" style="cursor:pointer;">
-        <span style="font-size:1.2rem;margin-right:8px;">←</span> Dashboard Mentor
+    <div class="logo" onclick="window.location.href='/'">
+        <img src="{{ asset('image/logo-kerjain.png') }}" alt="Logo KerjaIn" class="logo-img" onerror="this.style.display='none'">
+        KerjaIn
+    </div>
+    <div class="nav-links">
+        <span class="nav-role-badge" style="background:#d1fae5;color:#065f46;"><span class="material-icons" style="font-size: 18px; margin-right: 6px; display: inline-flex; vertical-align: middle;">person</span>Mentor</span>
+    </div>
+    <div class="nav-auth">
+        <span id="nav-nama" style="font-weight:600;color:var(--secondary);padding:8px 12px;"></span>
+        <a href="#" onclick="handleLogout()" class="btn-solid" style="background:#ef4444;">Keluar</a>
     </div>
 </nav>
 
 <div id="toast" class="toast"></div>
 
-<div class="dashboard-container" style="padding-top:72px;">
-    <main class="dash-main" style="margin-left:0; max-width:1000px; margin: 0 auto; padding-top: 40px;">
+<div class="dashboard-container">
+    <aside class="dash-sidebar">
+        <div class="sidebar-header">
+            <h3>Menu Mentor</h3>
+        </div>
+        <a class="nav-item" href="/pages/mentor/dashboard">
+            <span class="material-icons nav-icon">bar_chart</span> Dashboard
+        </a>
+        <a class="nav-item" href="/pages/mentor/explore">
+            <span class="material-icons nav-icon">explore</span> Jelajahi Program
+        </a>
+        <a class="nav-item" href="/pages/mentor/applications">
+            <span class="material-icons nav-icon">assignment_turned_in</span> Lamaran Saya
+        </a>
+        <a class="nav-item active" href="/pages/mentor/submissions">
+            <span class="material-icons nav-icon">description</span> Review Tugas
+        </a>
+        <a class="nav-item" href="/pages/mentor/profile">
+            <span class="material-icons nav-icon">account_circle</span> Profil Saya
+        </a>
+    </aside>
+
+    <main class="dash-main">
         
         <div style="margin-bottom:32px;">
             <h1 style="margin:0 0 8px;">Review Tugas Peserta</h1>
@@ -63,6 +92,7 @@
             <div id="rev-file-link" style="margin-top:12px;"></div>
         </div>
 
+        <div id="rev-status-note" style="margin-bottom:16px;color:var(--text-muted);font-size:0.92rem;display:none;"></div>
         <div class="form-group">
             <label>Keputusan Review *</label>
             <select id="rev-status" onchange="toggleNilaiInput(this.value)">
@@ -83,7 +113,7 @@
 
         <div class="modal-actions">
             <button class="btn-dash btn-dash-outline" onclick="document.getElementById('review-modal').classList.remove('show')">Batal</button>
-            <button class="btn-dash btn-dash-primary" onclick="submitReview()">Kirim Review</button>
+            <button id="rev-submit-btn" class="btn-dash btn-dash-primary" onclick="submitReview()">Kirim Review</button>
         </div>
     </div>
 </div>
@@ -101,7 +131,11 @@ function showToast(msg, type = 'success') {
 // ── INIT ──────────────────────────────────────────────────────────
 fetch('/api/session').then(r => r.json()).then(d => {
     if (!d.loggedIn || d.user.role !== 'mentor') window.location.href = '/';
-    else loadSubmissions('menunggu');
+    else {
+        loadSubmissions('menunggu');
+        // Auto refresh every 30 seconds
+        setInterval(() => loadSubmissions(document.querySelector('.filter-btn.btn-dash-primary')?.id?.replace('filter-', '') || ''), 30000);
+    }
 });
 
 function loadSubmissions(statusFilter) {
@@ -172,16 +206,36 @@ function openReviewModal(subId) {
     
     const fileLink = document.getElementById('rev-file-link');
     if (s.file_url) {
-        fileLink.innerHTML = `<a href="/${s.file_url}" target="_blank" class="btn-dash btn-dash-outline" style="font-size:0.8rem;padding:6px 12px;display:inline-flex;align-items:center;gap:6px;"><span class="material-icons" style="font-size:1rem;">description</span> Buka File Attachment</a>`;
+        fileLink.innerHTML = `<a href="${s.file_url}" target="_blank" class="btn-dash btn-dash-outline" style="font-size:0.8rem;padding:6px 12px;display:inline-flex;align-items:center;gap:6px;"><span class="material-icons" style="font-size:1rem;">description</span> Buka File Attachment</a>`;
     } else {
         fileLink.innerHTML = '';
     }
 
-    // Reset form
-    document.getElementById('rev-status').value = 'disetujui';
-    document.getElementById('rev-nilai').value = s.nilai || '';
-    document.getElementById('rev-feedback').value = s.feedback || '';
-    toggleNilaiInput('disetujui');
+    const note = document.getElementById('rev-status-note');
+    const submitBtn = document.getElementById('rev-submit-btn');
+    const statusInput = document.getElementById('rev-status');
+    const nilaiInput = document.getElementById('rev-nilai');
+    const feedbackInput = document.getElementById('rev-feedback');
+
+    statusInput.value = s.status === 'revisi' ? 'revisi' : 'disetujui';
+    nilaiInput.value = s.nilai || '';
+    feedbackInput.value = s.feedback || '';
+    toggleNilaiInput(statusInput.value);
+
+    if (s.status !== 'menunggu') {
+        note.style.display = 'block';
+        note.textContent = 'Submission ini sudah dinilai. Anda masih bisa melihat detail dan file, tetapi tidak dapat mengirim review lagi.';
+        submitBtn.disabled = true;
+        statusInput.disabled = true;
+        nilaiInput.disabled = true;
+        feedbackInput.disabled = true;
+    } else {
+        note.style.display = 'none';
+        submitBtn.disabled = false;
+        statusInput.disabled = false;
+        nilaiInput.disabled = false;
+        feedbackInput.disabled = false;
+    }
 
     document.getElementById('review-modal').classList.add('show');
 }
@@ -197,6 +251,12 @@ function toggleNilaiInput(status) {
 }
 
 function submitReview() {
+    const submitBtn = document.getElementById('rev-submit-btn');
+    if (submitBtn.disabled) {
+        showToast('Review sudah tidak dapat diedit untuk submission ini.', 'info');
+        return;
+    }
+
     const status = document.getElementById('rev-status').value;
     const nilai = document.getElementById('rev-nilai').value;
     const feedback = document.getElementById('rev-feedback').value;

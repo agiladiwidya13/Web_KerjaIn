@@ -100,6 +100,10 @@ class PelajarController extends Controller
         $user = $this->getUser();
         $p    = $user->pelajar;
 
+        if (! $p) {
+            return response()->json(['status' => 'error', 'message' => 'Data pelajar tidak ditemukan'], 404);
+        }
+
         // Active enrollments
         $enrollments = $user->enrollments()
             ->with(['program.mitra', 'program.tasks'])
@@ -123,10 +127,12 @@ class PelajarController extends Controller
         return response()->json([
             'status' => 'success',
             'data'   => [
-                'nama'        => $user->nama_lengkap,
-                'total_poin'  => $p->total_poin ?? 0,
-                'enrollments' => $enrollments,
-                'completed'   => $completed,
+                'nama'              => $user->nama_lengkap,
+                'total_poin'        => $p->total_poin ?? 0,
+                'certificate_count' => $p->certificates()->count(),
+                'portfolio_count'   => $p->portfolios()->count(),
+                'enrollments'       => $enrollments,
+                'completed'         => $completed,
             ],
         ]);
     }
@@ -165,5 +171,84 @@ class PelajarController extends Controller
             'status' => 'success',
             'data' => $leaderboard
         ]);
+    }
+
+    /**
+     * GET /api/pelajar/certificates
+     * List all certificates earned by this student.
+     */
+    public function certificates()
+    {
+        $user = $this->getUser();
+
+        $certificates = \App\Models\Certificate::whereHas('enrollment', function ($q) use ($user) {
+                $q->where('pelajar_id', $user->id);
+            })
+            ->with(['enrollment.program.mitra'])
+            ->orderByDesc('issued_at')
+            ->get()
+            ->map(function ($cert) {
+                return [
+                    'id'                => $cert->id,
+                    'nomor_sertifikat'  => $cert->nomor_sertifikat,
+                    'program'           => $cert->enrollment->program->judul,
+                    'perusahaan'        => $cert->enrollment->program->mitra->nama_usaha,
+                    'logo'              => $cert->enrollment->program->mitra->logo_perusahaan,
+                    'issued_at'         => $cert->issued_at?->format('d M Y'),
+                    'pdf_url'           => $cert->pdf_url,
+                ];
+            });
+
+        return response()->json(['status' => 'success', 'data' => $certificates]);
+    }
+
+    /**
+     * GET /api/pelajar/portfolios
+     * List all portfolios with task details.
+     * Portfolio = collection of completed program tasks with descriptions.
+     */
+    public function portfolios()
+    {
+        $user = $this->getUser();
+
+        $portfolios = \App\Models\Portfolio::where('pelajar_id', $user->id)
+            ->with([
+                'enrollment.program.mitra',
+                'enrollment.program.tasks',
+                'enrollment.submissions',
+            ])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($portfolio) {
+                $enrollment = $portfolio->enrollment;
+                $program = $enrollment->program;
+
+                // Build task list with descriptions and submission data
+                $tasks = $program->tasks->map(function ($task) use ($enrollment) {
+                    $submission = $enrollment->submissions->where('task_id', $task->id)->first();
+                    return [
+                        'id'        => $task->id,
+                        'judul'     => $task->judul,
+                        'deskripsi' => $task->deskripsi,
+                        'urutan'    => $task->urutan,
+                        'status'    => $submission ? $submission->status : null,
+                        'nilai'     => $submission ? $submission->nilai : null,
+                        'file_url'  => $submission ? $submission->file_url : null,
+                    ];
+                });
+
+                return [
+                    'id'          => $portfolio->id,
+                    'program'     => $program->judul,
+                    'perusahaan'  => $program->mitra->nama_usaha,
+                    'bidang'      => $program->bidang,
+                    'logo'        => $program->mitra->logo_perusahaan,
+                    'is_public'   => $portfolio->is_public,
+                    'created_at'  => $portfolio->created_at?->format('d M Y'),
+                    'tasks'       => $tasks,
+                ];
+            });
+
+        return response()->json(['status' => 'success', 'data' => $portfolios]);
     }
 }

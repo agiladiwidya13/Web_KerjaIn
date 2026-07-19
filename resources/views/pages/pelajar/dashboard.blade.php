@@ -45,6 +45,12 @@
         <a class="nav-item" id="nav-item-programs" onclick="showSection('programs')">
             <span class="material-icons nav-icon">menu_book</span> Program Saya
         </a>
+        <a class="nav-item" href="/pages/pelajar/certificates">
+            <span class="material-icons nav-icon">emoji_events</span> Sertifikat
+        </a>
+        <a class="nav-item" href="/pages/pelajar/portfolios">
+            <span class="material-icons nav-icon">badge</span> Portofolio
+        </a>
         <a class="nav-item" href="/pages/programs">
             <span class="material-icons nav-icon">search</span> Cari Program
         </a>
@@ -83,6 +89,11 @@
                     <div class="stat-icon"><span class="material-icons">emoji_events</span></div>
                     <div class="stat-value" id="stat-certs">0</div>
                     <div class="stat-label">Sertifikat</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><span class="material-icons">folder</span></div>
+                    <div class="stat-value" id="stat-portfolios">0</div>
+                    <div class="stat-label">Portofolio</div>
                 </div>
             </div>
 
@@ -133,6 +144,7 @@
             }
             document.getElementById('nav-nama').textContent = d.user.nama.split(' ')[0];
             loadDashboard();
+            setInterval(loadDashboard, 30000);
             
             // Check query param for section
             const urlParams = new URLSearchParams(window.location.search);
@@ -172,36 +184,46 @@ function showToast(msg, type = 'success') {
 
 // ── Load Dashboard Data ─────────────────────────────────────
 function loadDashboard() {
-    fetch('/api/pelajar/dashboard')
+    fetch('/api/pelajar/dashboard', { credentials: 'same-origin' })
         .then(r => r.json())
         .then(d => {
-            if (d.status !== 'success') return;
+            if (d.status !== 'success') {
+                console.error('Pelajar dashboard response error', d);
+                showToast('Gagal memuat data dashboard pelajar.', 'error');
+                return;
+            }
 
-            document.getElementById('welcome-nama').textContent = d.data.nama.split(' ')[0];
-            document.getElementById('stat-poin').textContent = d.data.total_poin;
-            document.getElementById('stat-completed').textContent = d.data.completed;
-            document.getElementById('stat-active').textContent = d.data.enrollments.length;
+            const namaLengkap = d.data.nama || d.data.nama_lengkap || 'Teman';
+            document.getElementById('welcome-nama').textContent = (namaLengkap.split ? namaLengkap.split(' ')[0] : namaLengkap) || 'Teman';
+            document.getElementById('stat-poin').textContent = d.data.total_poin ?? 0;
+            document.getElementById('stat-completed').textContent = d.data.completed ?? 0;
+            document.getElementById('stat-active').textContent = (d.data.enrollments || []).length;
+            document.getElementById('stat-certs').textContent = d.data.certificate_count ?? 0;
+            document.getElementById('stat-portfolios').textContent = d.data.portfolio_count ?? 0;
 
-            if (d.data.enrollments.length > 0) {
+            if (Array.isArray(d.data.enrollments) && d.data.enrollments.length > 0) {
                 document.getElementById('active-programs').innerHTML = d.data.enrollments.map(e => `
                     <div class="program-item" onclick="window.location.href='/pages/pelajar/enrollments/${e.id}'">
                         <div class="prog-icon"><span class="material-icons">menu_book</span></div>
                         <div class="prog-info">
-                            <h4>${e.program}</h4>
-                            <p>${e.perusahaan} · ${e.bidang || 'Umum'}</p>
+                            <h4>${e.program || 'Program tidak diketahui'}</h4>
+                            <p>${e.perusahaan || 'Perusahaan tidak diketahui'} · ${e.bidang || 'Umum'}</p>
                             <div class="progress-bar-wrap">
-                                <div class="progress-bar-fill" style="width:${e.progress}%"></div>
+                                <div class="progress-bar-fill" style="width:${e.progress ?? 0}%"></div>
                             </div>
-                            <div class="progress-label">${e.progress}% selesai · ${e.total_tasks} task</div>
+                            <div class="progress-label">${e.progress ?? 0}% selesai · ${e.total_tasks ?? 0} task</div>
                         </div>
                     </div>
                 `).join('');
             }
         })
-        .catch(err => console.error('Dashboard error:', err));
+        .catch(err => {
+            console.error('Dashboard error:', err);
+            showToast('Terjadi kesalahan saat memuat dashboard pelajar.', 'error');
+        });
 
     // Load all enrollments
-    fetch('/api/pelajar/enrollments')
+    fetch('/api/pelajar/enrollments', { credentials: 'same-origin' })
         .then(r => r.json())
         .then(d => {
             if (d.status !== 'success' || !d.data.length) return;
@@ -210,19 +232,20 @@ function loadDashboard() {
                 <div class="program-item" onclick="window.location.href='/pages/pelajar/enrollments/${e.id}'">
                     <div class="prog-icon">${e.status === 'selesai' ? '<span class="material-icons">check_circle</span>' : '<span class="material-icons">menu_book</span>'}</div>
                     <div class="prog-info">
-                        <h4>${e.judul}</h4>
-                        <p>${e.perusahaan} · ${e.bidang || 'Umum'}</p>
+                        <h4>${e.judul || 'Program tidak diketahui'}</h4>
+                        <p>${e.perusahaan || 'Perusahaan tidak diketahui'} · ${e.bidang || 'Umum'}</p>
                         <div class="progress-bar-wrap">
-                            <div class="progress-bar-fill" style="width:${e.progress}%"></div>
+                            <div class="progress-bar-fill" style="width:${e.progress ?? 0}%"></div>
                         </div>
-                        <div class="progress-label">${e.progress}% · ${e.total_tasks} task</div>
+                        <div class="progress-label">${e.progress ?? 0}% · ${e.total_tasks ?? 0} task</div>
                     </div>
                     <div class="prog-meta">
-                        <span class="badge ${e.status === 'selesai' ? 'badge-success' : 'badge-primary'}">${e.status}</span>
+                        <span class="badge ${e.status === 'selesai' ? 'badge-success' : 'badge-primary'}">${e.status || 'unknown'}</span>
                     </div>
                 </div>
             `).join('');
-        });
+        })
+        .catch(err => console.error('Enrollments load error:', err));
 }
 </script>
 

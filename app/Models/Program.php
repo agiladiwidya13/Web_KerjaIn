@@ -11,12 +11,15 @@ class Program extends Model
 
     protected $fillable = [
         'id', 'mitra_id', 'judul', 'deskripsi', 'bidang', 'cover_image',
-        'status', 'kuota', 'tanggal_mulai', 'tanggal_selesai',
+        'status', 'kuota', 'registrasi_mulai', 'registrasi_selesai',
+        'tanggal_mulai', 'tanggal_selesai',
     ];
 
     protected $casts = [
-        'tanggal_mulai'   => 'date',
-        'tanggal_selesai' => 'date',
+        'registrasi_mulai'   => 'date',
+        'registrasi_selesai' => 'date',
+        'tanggal_mulai'      => 'date',
+        'tanggal_selesai'    => 'date',
     ];
 
     // ── Relationships ────────────────────────────────────────
@@ -29,7 +32,12 @@ class Program extends Model
     public function mentors()
     {
         return $this->belongsToMany(Mentor::class, 'program_mentors', 'program_id', 'mentor_id')
-                    ->withPivot('assigned_at');
+                    ->withPivot('status', 'applied_at', 'reviewed_at');
+    }
+
+    public function approvedMentors()
+    {
+        return $this->mentors()->wherePivot('status', 'disetujui');
     }
 
     public function tasks()
@@ -54,7 +62,21 @@ class Program extends Model
         return $query->where('status', 'draft');
     }
 
+    public function scopeRegistrationOpen($query)
+    {
+        return $query->where('registrasi_mulai', '<=', now())
+                     ->where('registrasi_selesai', '>=', now());
+    }
+
     // ── Helpers ──────────────────────────────────────────────
+
+    public function isRegistrationOpen(): bool
+    {
+        if (!$this->registrasi_mulai || !$this->registrasi_selesai) {
+            return false;
+        }
+        return now()->between($this->registrasi_mulai, $this->registrasi_selesai);
+    }
 
     public function isPublished(): bool
     {

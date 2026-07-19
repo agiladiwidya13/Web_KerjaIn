@@ -29,28 +29,8 @@
     </div>
 </nav>
 
-<div class="dashboard-container" style="padding-top: 72px;">
-    <!-- DASHBOARD SIDEBAR -->
-    <aside class="dash-sidebar">
-        <div class="sidebar-header">
-            <h3>Menu Mitra</h3>
-        </div>
-        <a class="nav-item" href="/pages/mitra/dashboard">
-            <span class="material-icons nav-icon">bar_chart</span> Dashboard
-        </a>
-        <a class="nav-item" href="/pages/mitra/dashboard?section=programs">
-            <span class="material-icons nav-icon">menu_book</span> Kelola Program
-        </a>
-        <a class="nav-item" href="/pages/mitra/dashboard?section=mentors">
-            <span class="material-icons nav-icon">person</span> Mentor Saya
-        </a>
-        <a class="nav-item" href="/pages/mitra/candidates">
-            <span class="material-icons nav-icon">search</span> Cari Kandidat
-        </a>
-        <a class="nav-item active" href="/pages/mitra/profile">
-            <span class="material-icons nav-icon">account_circle</span> Profil Perusahaan
-        </a>
-    </aside>
+<div class="dashboard-container" style="padding-top: 16px;">
+    @include('partials.mitra-sidebar')
 
     <div class="dash-main profile-wrapper" style="display:flex; gap:24px;">
 

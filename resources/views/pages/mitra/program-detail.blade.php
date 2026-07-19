@@ -21,7 +21,7 @@
 
 <div id="toast" class="toast"></div>
 
-<div class="dashboard-container" style="padding-top:72px;">
+<div class="dashboard-container" style="padding-top:64px;">
     <!-- FULL WIDTH MAIN -->
     <main class="dash-main" style="margin-left:0; max-width:1200px; margin: 0 auto; padding-top: 40px;">
         
@@ -43,6 +43,10 @@
                     </div>
                     <div style="color:var(--text-muted);font-size:0.95rem;">
                         <span id="prog-bidang">-</span> · <span id="prog-peserta">0</span> Peserta
+                    </div>
+                    <div style="color:var(--text-muted);font-size:0.9rem;margin-top:6px;display:flex;gap:20px;flex-wrap:wrap;">
+                        <span style="display:inline-flex;align-items:center;gap:4px;"><span class="material-icons" style="font-size:16px;">event_note</span> Pendaftaran: <strong id="prog-reg-period">-</strong></span>
+                        <span style="display:inline-flex;align-items:center;gap:4px;"><span class="material-icons" style="font-size:16px;">calendar_today</span> Pelaksanaan: <strong id="prog-exec-period">-</strong></span>
                     </div>
                 </div>
                 <div style="display:flex;gap:12px;" id="action-buttons">
@@ -185,6 +189,14 @@ function loadProgramDetail() {
             document.getElementById('prog-bidang').textContent = p.bidang || 'Umum';
             document.getElementById('prog-peserta').textContent = p.enrollments.length;
 
+            const regMulai = p.registrasi_mulai || '-';
+            const regSelesai = p.registrasi_selesai || '-';
+            document.getElementById('prog-reg-period').textContent = `${regMulai} s.d. ${regSelesai}`;
+
+            const tglMulai = p.tanggal_mulai || '-';
+            const tglSelesai = p.tanggal_selesai || '-';
+            document.getElementById('prog-exec-period').textContent = `${tglMulai} s.d. ${tglSelesai}`;
+
             if (p.cover_image) {
                 const src = p.cover_image.startsWith('http') || p.cover_image.startsWith('/') 
                     ? p.cover_image 
@@ -215,7 +227,7 @@ function loadProgramDetail() {
             } else {
                 taskContainer.innerHTML = p.tasks.map((t, i) => `
                     <div class="program-item" style="cursor:default;">
-                        <div class="prog-icon" style="background:#f1f5f9;color:var(--text);font-weight:700;">${i+1}</div>
+                        <div class="prog-icon" style="background:var(--dash-bg);color:var(--text);font-weight:700;">${i+1}</div>
                         <div class="prog-info">
                             <h4 style="font-size:1.05rem;">${t.judul}</h4>
                             <p style="white-space:pre-line;margin-top:8px;">${t.deskripsi || ''}</p>

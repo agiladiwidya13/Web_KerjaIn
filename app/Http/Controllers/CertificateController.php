@@ -13,7 +13,7 @@ class CertificateController extends Controller
      */
     public function show($id)
     {
-        $certificate = Certificate::with(['enrollment.pelajar.user', 'enrollment.program.mitra.user'])
+        $certificate = Certificate::with(['enrollment.pelajar.user', 'enrollment.program.mitra.user', 'enrollment.submissions'])
             ->where('id', $id)
             ->firstOrFail();
 

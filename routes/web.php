@@ -26,6 +26,14 @@ Route::get('/pages/pelajar/profile', function () {
     return view('pages.pelajar.profile');
 });
 
+Route::get('/pages/pelajar/certificates', function () {
+    return view('pages.pelajar.certificates');
+});
+
+Route::get('/pages/pelajar/portfolios', function () {
+    return view('pages.pelajar.portfolios');
+});
+
 Route::get('/pages/mentor/profile', function () {
     return view('pages.mentor.profile');
 });
@@ -71,3 +79,18 @@ Route::get('/pages/mitra/programs/{id}', function ($id) {
 Route::get('/pages/mentor/submissions', function () {
     return view('pages.mentor.submissions');
 });
+
+// ── Mentor: Explore & Applications ───────────────────────
+Route::get('/pages/mentor/explore', function () {
+    return view('pages.mentor.explore');
+});
+
+Route::get('/pages/mentor/applications', function () {
+    return view('pages.mentor.applications');
+});
+
+// ── Mitra: Mentor Applications ───────────────────────────
+Route::get('/pages/mitra/mentor-applications', function () {
+    return view('pages.mitra.mentor-applications');
+});
+

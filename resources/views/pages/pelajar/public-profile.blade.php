@@ -18,6 +18,11 @@
             display: flex;
             flex-direction: column;
             background: var(--dash-bg);
+            /* Override theme for public student profile (blue) */
+            --primary: #2563eb;
+            --primary-hover: #1e40af;
+            --secondary: #1e3a8a;
+            --dash-accent: #2563eb;
             overflow: hidden;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
@@ -271,12 +276,17 @@
     </style>
 </head>
 <body>
+<script>
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+</script>
 
 <nav>
-    <div class="logo" onclick="window.location.href='/'" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-        <img src="{{ asset('image/logo-kerjain.png') }}" alt="Logo KerjaIn" class="logo-img" style="height: 32px;">
-        <span style="font-weight: 800; font-size: 1.25rem; color: var(--primary);">KerjaIn</span>
-    </div>
+    <button style="background: none; border: none; cursor: pointer; padding: 8px; display: flex; align-items: center; gap: 8px;" onclick="history.back()" title="Kembali">
+        <span class="material-icons" style="font-size: 24px; color: var(--primary);">arrow_back</span>
+        <span style="color: var(--primary); font-weight: 600;">Kembali</span>
+    </button>
 </nav>
 
 <div class="main-wrapper">
@@ -342,7 +352,7 @@
             <div class="scrollable-list">
                 @if($pelajar->portfolios->count() > 0)
                     @foreach($pelajar->portfolios as $porto)
-                    <div class="portfolio-item">
+                    <div class="portfolio-item" style="cursor: pointer;" onclick="showPortfolioTasks('{{ $porto->id }}')">
                         <div style="font-size:0.75rem; color:var(--dash-accent); font-weight:700; margin-bottom:6px;">
                             {{ $porto->enrollment->program->mitra->user->nama_lengkap ?? 'Mitra Perusahaan' }}
                         </div>
@@ -397,5 +407,119 @@
 </div>
 
 <script src="{{ asset('js/dashboard-global.js') }}"></script>
+
+<!-- MODAL PORTFOLIO TASKS -->
+<div id="taskModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:16px; padding:32px; width:90%; max-width:600px; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <div>
+                <h2 id="modalTitle" style="margin:0 0 4px; font-size:1.5rem; font-weight:700;">Judul Program</h2>
+                <p id="modalSubtitle" style="margin:0; color:#64748b; font-size:0.9rem;">Daftar Tugas</p>
+            </div>
+            <button onclick="closeTaskModal()" style="background:none; border:none; cursor:pointer; font-size:1.5rem; color:#64748b;">×</button>
+        </div>
+        
+        <div id="tasksContainer" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Tasks akan diisi oleh JavaScript -->
+        </div>
+    </div>
+</div>
+
+<script>
+    function showPortfolioTasks(portfolioId) {
+        fetch(`/api/mitra/portfolio-tasks/${portfolioId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showTaskModalContent(data.data);
+                } else {
+                    alert('Gagal memuat data tugas: ' + (data.message || 'Kesalahan tidak diketahui'));
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Terjadi kesalahan saat memuat tugas');
+            });
+    }
+
+    function showTaskModalContent(data) {
+        document.getElementById('modalTitle').textContent = data.program_judul;
+        const tasksContainer = document.getElementById('tasksContainer');
+        
+        if (!data.tasks || data.tasks.length === 0) {
+            tasksContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:24px;">Belum ada tugas untuk program ini</div>';
+        } else {
+            tasksContainer.innerHTML = data.tasks.map((task, idx) => `
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                        <div>
+                            <h4 style="margin:0 0 4px; font-size:1rem; font-weight:600; color:#1e293b;">
+                                ${idx + 1}. ${task.judul}
+                            </h4>
+                            <p style="margin:0; color:#64748b; font-size:0.85rem;">${task.deskripsi || 'Tidak ada deskripsi'}</p>
+                        </div>
+                        <div style="background:#eef2ff; color:#2563eb; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:600; white-space:nowrap;">
+                            ${task.status === 'disetujui' ? '✓ Disetujui' : task.status === 'revisi' ? '! Revisi' : task.status === 'menunggu' ? '⏳ Menunggu' : 'Belum Submit'}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px solid #e2e8f0;">
+                        ${task.file_url ? `
+                            <div style="margin-bottom:8px;">
+                                <a href="${task.file_url}" download style="display:inline-flex; align-items:center; gap:6px; color:#2563eb; text-decoration:none; font-weight:600; font-size:0.9rem; padding:8px 12px; background:#eef2ff; border-radius:6px; transition:all 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eef2ff'">
+                                    <span class="material-icons" style="font-size:16px;">download</span>
+                                    Unduh File Tugas
+                                </a>
+                            </div>
+                        ` : `
+                            <div style="margin-bottom:8px; color:#94a3b8; font-size:0.85rem; font-style:italic;">
+                                Belum ada file tugas
+                            </div>
+                        `}
+                        
+                        ${task.deadline ? `
+                            <div style="font-size:0.85rem; color:#64748b;">
+                                <span class="material-icons" style="font-size:14px; vertical-align:middle;">schedule</span>
+                                Deadline: ${task.deadline}
+                            </div>
+                        ` : ''}
+                        
+                        ${task.catatan ? `
+                            <div style="margin-top:8px; font-size:0.85rem; color:#64748b;">
+                                <strong>Catatan:</strong> ${task.catatan}
+                            </div>
+                        ` : ''}
+                        
+                        ${task.feedback ? `
+                            <div style="margin-top:8px; padding:8px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:4px; font-size:0.85rem;">
+                                <strong style="color:#92400e;">Feedback:</strong>
+                                <p style="margin:4px 0 0; color:#92400e;">${task.feedback}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${task.nilai ? `
+                            <div style="margin-top:8px; font-size:0.9rem; font-weight:600; color:#16a34a;">
+                                Nilai: ${task.nilai}/100
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('taskModal').style.display = 'flex';
+    }
+
+    function closeTaskModal() {
+        document.getElementById('taskModal').style.display = 'none';
+    }
+
+    // Close modal jika klik di luar
+    document.getElementById('taskModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeTaskModal();
+        }
+    });
+</script>
 </body>
 </html>

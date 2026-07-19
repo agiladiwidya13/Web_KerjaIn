@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
     <style>
         .detail-header {
-            background: white;
+            background: var(--dash-card);
             border-bottom: 1px solid var(--dash-border);
             padding: 100px 20px 40px;
         }
@@ -27,7 +27,7 @@
             width: 100px;
             height: 100px;
             border-radius: 16px;
-            background: #f8fafc;
+            background: var(--dash-bg);
             border: 1px solid var(--dash-border);
             display: flex;
             align-items: center;
@@ -53,7 +53,7 @@
             gap: 6px;
             font-size: 0.9rem;
             color: var(--text-muted);
-            background: #f1f5f9;
+            background: var(--dash-bg);
             padding: 6px 12px;
             border-radius: 20px;
         }
@@ -64,8 +64,16 @@
             grid-template-columns: 2fr 1fr;
             gap: 32px;
             padding: 0 20px;
+            align-items: stretch;
         }
-        .desc-section h2 { margin-bottom: 16px; font-size: 1.3rem; }
+        .sidebar {
+            display: flex;
+        }
+        .sidebar-card {
+            height: 100%;
+        }
+        .desc-section h2,
+        .task-list h2 { margin-bottom: 16px; font-size: 1.3rem; }
         .desc-section p { line-height: 1.7; color: var(--text); margin-bottom: 16px; white-space: pre-line; }
         
         .task-list { margin-top: 32px; }
@@ -76,7 +84,7 @@
             border: 1px solid var(--dash-border);
             border-radius: 12px;
             margin-bottom: 12px;
-            background: white;
+            background: var(--dash-card);
         }
         .task-number {
             width: 32px;
@@ -91,7 +99,7 @@
             flex-shrink: 0;
         }
         .sidebar-card {
-            background: white;
+            background: var(--dash-card);
             border-radius: 16px;
             border: 1px solid var(--dash-border);
             padding: 24px;
@@ -101,6 +109,11 @@
     </style>
 </head>
 <body style="background: var(--dash-bg);">
+<script>
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+</script>
 
 <!-- TOAST -->
 <div id="toast" class="toast"></div>
@@ -154,17 +167,20 @@
         <div class="sidebar-card">
             <h3 style="margin: 0 0 16px; font-size:1.1rem;">Informasi Pendaftaran</h3>
             
-            <div style="margin-bottom: 24px;">
-                <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">Batas Pendaftaran</div>
-                <div style="font-weight:600;" id="prog-deadline">-</div>
+            <div style="margin-bottom: 20px;">
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">Periode Pendaftaran</div>
+                <div style="font-weight:600;" id="prog-reg-period">-</div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">Pelaksanaan Program</div>
+                <div style="font-weight:600;" id="prog-exec-period">-</div>
             </div>
             
             <div style="margin-bottom: 24px;">
                 <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">Mentors</div>
                 <div id="mentors-container"></div>
             </div>
-
-            <div id="enroll-action-sidebar"></div>
         </div>
     </aside>
 </div>
@@ -211,7 +227,8 @@ function loadDetail() {
             document.getElementById('prog-bidang').textContent = p.bidang || 'Umum';
             document.getElementById('prog-peserta').textContent = p.enrolled + (p.kuota ? ` / ${p.kuota}` : '');
             document.getElementById('prog-deskripsi').textContent = p.deskripsi || 'Tidak ada deskripsi.';
-            document.getElementById('prog-deadline').textContent = p.tanggal_mulai || 'Kapan saja';
+            document.getElementById('prog-reg-period').textContent = p.registrasi_mulai && p.registrasi_selesai ? `${p.registrasi_mulai} s.d. ${p.registrasi_selesai}` : 'Kapan saja';
+            document.getElementById('prog-exec-period').textContent = p.tanggal_mulai && p.tanggal_selesai ? `${p.tanggal_mulai} s.d. ${p.tanggal_selesai}` : 'Kapan saja';
 
             if (p.logo) document.getElementById('comp-logo').innerHTML = `<img src="/${p.logo}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">`;
 
@@ -260,12 +277,13 @@ function loadDetail() {
                 btnHtml = `<button class="btn-dash btn-dash-success" style="width:100%;justify-content:center;" onclick="window.location.href='/pages/pelajar/dashboard'">Lihat Progress (Dashboard)</button>`;
             } else if (p.is_full) {
                 btnHtml = `<button class="btn-dash btn-dash-danger" style="width:100%;justify-content:center;" disabled>Kuota Penuh</button>`;
+            } else if (!p.is_registration_open) {
+                btnHtml = `<button class="btn-dash btn-dash-outline" style="width:100%;justify-content:center;opacity:0.6;cursor:not-allowed;" disabled>Pendaftaran Ditutup</button>`;
             } else {
                 btnHtml = `<button class="btn-dash btn-dash-primary" style="width:100%;justify-content:center;" onclick="enroll()">Daftar Program Sekarang</button>`;
             }
 
             document.getElementById('enroll-action-header').innerHTML = btnHtml;
-            document.getElementById('enroll-action-sidebar').innerHTML = btnHtml;
         });
 }
 

@@ -14,7 +14,12 @@
     <!-- Cara manggil file profile.css -->
     <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
 </head>
-<body>
+<body style="background: var(--bg);">
+<script>
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+</script>
 
 <!-- NAVIGATION -->
 <nav>
@@ -216,9 +221,12 @@
                     <label for="login-email">Email</label>
                     <input type="email" id="login-email" name="email" placeholder="email@contoh.com" required autocomplete="email">
                 </div>
-                <div class="form-group">
+                <div class="form-group password-group">
                     <label for="login-pass">Password</label>
-                    <input type="password" id="login-pass" name="password" placeholder="Masukkan password" required autocomplete="current-password">
+                    <div class="password-wrapper">
+                        <input type="password" id="login-pass" name="password" placeholder="Masukkan password" required autocomplete="current-password">
+                        <button type="button" class="password-toggle" onclick="togglePassword('login-pass', this)"><span class="material-icons">visibility</span></button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-auth" id="btn-masuk">Masuk ke Akun →</button>
             </form>
@@ -242,9 +250,12 @@
                     <label for="reg-email">Email</label>
                     <input type="email" id="reg-email" name="email" placeholder="email@contoh.com" required autocomplete="email">
                 </div>
-                <div class="form-group">
+                <div class="form-group password-group">
                     <label for="reg-pass">Password</label>
-                    <input type="password" id="reg-pass" name="password" placeholder="Minimal 8 karakter" required minlength="8" autocomplete="new-password">
+                    <div class="password-wrapper">
+                        <input type="password" id="reg-pass" name="password" placeholder="Minimal 8 karakter" required minlength="8" autocomplete="new-password">
+                        <button type="button" class="password-toggle" onclick="togglePassword('reg-pass', this)"><span class="material-icons">visibility</span></button>
+                    </div>
                 </div>
                 <input type="hidden" id="reg-role" name="role" value="pelajar">
                 <button type="submit" class="btn-auth" id="btn-daftar">Buat Akun Gratis →</button>
@@ -277,5 +288,6 @@
 </footer>
 
 <script src="{{ asset('js/main.js') }}"></script>
+<script src="{{ asset('js/dashboard-global.js') }}"></script>
 </body>
 </html>

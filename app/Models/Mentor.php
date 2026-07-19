@@ -36,7 +36,26 @@ class Mentor extends Model
     public function programs()
     {
         return $this->belongsToMany(Program::class, 'program_mentors', 'mentor_id', 'program_id')
-                    ->withPivot('assigned_at');
+                    ->withPivot('status', 'applied_at', 'reviewed_at');
+    }
+
+    /**
+     * Program applications — programs this mentor has applied to.
+     */
+    public function applications()
+    {
+        return $this->belongsToMany(Program::class, 'program_mentors', 'mentor_id', 'program_id')
+                    ->withPivot('id', 'status', 'applied_at', 'reviewed_at');
+    }
+
+    /**
+     * Scope: only approved mentor assignments for a program.
+     */
+    public function approvedPrograms()
+    {
+        return $this->belongsToMany(Program::class, 'program_mentors', 'mentor_id', 'program_id')
+                    ->wherePivot('status', 'disetujui')
+                    ->withPivot('status', 'applied_at', 'reviewed_at');
     }
 
     /**

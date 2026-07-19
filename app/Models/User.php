@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Certificate;
+use App\Models\Enrollment;
+use App\Models\Portfolio;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -43,6 +46,16 @@ class User extends Authenticatable
     public function enrollments()
     {
         return $this->hasMany(Enrollment::class, 'pelajar_id');
+    }
+
+    public function portfolios()
+    {
+        return $this->hasMany(Portfolio::class, 'pelajar_id');
+    }
+
+    public function certificates()
+    {
+        return $this->hasManyThrough(Certificate::class, Enrollment::class, 'pelajar_id', 'enrollment_id', 'id', 'id');
     }
 
     public function notifications()

@@ -11,10 +11,20 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
     <style>
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: var(--dash-accent);
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
         .ws-header {
             background: white;
             border-bottom: 1px solid var(--dash-border);
-            padding: 80px 20px 24px;
+            padding: 40px 20px 24px;
         }
         .ws-header-content {
             max-width: 1200px;
@@ -25,7 +35,7 @@
         }
         .ws-main {
             max-width: 1200px;
-            margin: 32px auto;
+            margin: 20px auto;
             display: grid;
             grid-template-columns: 3fr 2fr;
             gap: 24px;
@@ -134,9 +144,9 @@
 <body style="background: var(--dash-bg);">
 
 <nav>
-    <div class="logo" onclick="window.location.href='/pages/pelajar/dashboard'" style="cursor:pointer;">
-        <span style="font-size:1.2rem;margin-right:8px;">←</span> Kembali ke Dashboard
-    </div>
+    <a href="/pages/pelajar/dashboard" class="back-btn">
+        <span class="material-icons" style="font-size:1.2rem;">arrow_back</span> Kembali
+    </a>
 </nav>
 
 <div id="toast" class="toast"></div>

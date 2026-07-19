@@ -7,6 +7,7 @@ use App\Models\Program;
 use App\Models\User;
 use App\Models\Enrollment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProgramController extends Controller
@@ -42,26 +43,30 @@ class ProgramController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'judul'           => 'required|string|max:255',
-            'deskripsi'       => 'nullable|string',
-            'bidang'          => 'nullable|string|max:100',
-            'kuota'           => 'nullable|integer|min:1',
-            'tanggal_mulai'   => 'nullable|date',
-            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
+            'judul'              => 'required|string|max:255',
+            'deskripsi'          => 'nullable|string',
+            'bidang'             => 'nullable|string|max:100',
+            'kuota'              => 'nullable|integer|min:1',
+            'registrasi_mulai'   => 'nullable|date',
+            'registrasi_selesai' => 'nullable|date|after_or_equal:registrasi_mulai',
+            'tanggal_mulai'      => 'nullable|date',
+            'tanggal_selesai'    => 'nullable|date|after_or_equal:tanggal_mulai',
         ]);
 
         $user = $this->getUser();
 
         $program = Program::create([
-            'id'              => (string) Str::uuid(),
-            'mitra_id'        => $user->mitra->id,
-            'judul'           => $request->judul,
-            'deskripsi'       => $request->deskripsi,
-            'bidang'          => $request->bidang,
-            'status'          => 'draft',
-            'kuota'           => $request->kuota,
-            'tanggal_mulai'   => $request->tanggal_mulai,
-            'tanggal_selesai' => $request->tanggal_selesai,
+            'id'                 => (string) Str::uuid(),
+            'mitra_id'           => $user->mitra->id,
+            'judul'              => $request->judul,
+            'deskripsi'          => $request->deskripsi,
+            'bidang'             => $request->bidang,
+            'status'             => 'draft',
+            'kuota'              => $request->kuota,
+            'registrasi_mulai'   => $request->registrasi_mulai,
+            'registrasi_selesai' => $request->registrasi_selesai,
+            'tanggal_mulai'      => $request->tanggal_mulai,
+            'tanggal_selesai'    => $request->tanggal_selesai,
         ]);
 
         return response()->json([
@@ -87,12 +92,14 @@ class ProgramController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'judul'           => 'required|string|max:255',
-            'deskripsi'       => 'nullable|string',
-            'bidang'          => 'nullable|string|max:100',
-            'kuota'           => 'nullable|integer|min:1',
-            'tanggal_mulai'   => 'nullable|date',
-            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
+            'judul'              => 'required|string|max:255',
+            'deskripsi'          => 'nullable|string',
+            'bidang'             => 'nullable|string|max:100',
+            'kuota'              => 'nullable|integer|min:1',
+            'registrasi_mulai'   => 'nullable|date',
+            'registrasi_selesai' => 'nullable|date|after_or_equal:registrasi_mulai',
+            'tanggal_mulai'      => 'nullable|date',
+            'tanggal_selesai'    => 'nullable|date|after_or_equal:tanggal_mulai',
         ]);
 
         $user = $this->getUser();
@@ -102,6 +109,7 @@ class ProgramController extends Controller
 
         $program->update($request->only([
             'judul', 'deskripsi', 'bidang', 'kuota',
+            'registrasi_mulai', 'registrasi_selesai',
             'tanggal_mulai', 'tanggal_selesai',
         ]));
 
@@ -115,6 +123,21 @@ class ProgramController extends Controller
         $program = Program::where('id', $id)
             ->where('mitra_id', $user->mitra->id)
             ->firstOrFail();
+
+        if (! $program->registrasi_mulai || ! $program->registrasi_selesai || ! $program->tanggal_mulai || ! $program->tanggal_selesai) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Semua periode (pendaftaran dan program) harus diisi sebelum dipublikasikan.',
+            ], 422);
+        }
+
+        // Validate date ordering: registrasi_selesai <= tanggal_mulai
+        if ($program->registrasi_selesai > $program->tanggal_mulai) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Periode pendaftaran harus berakhir sebelum atau pada tanggal mulai program.',
+            ], 422);
+        }
 
         if ($program->tasks()->count() < 3) {
             return response()->json([
@@ -216,6 +239,10 @@ class ProgramController extends Controller
             ->with('mitra')
             ->withCount('enrollments');
 
+        // BL-P08: Only show programs with active registration period
+        $query->where('registrasi_mulai', '<=', now())
+              ->where('registrasi_selesai', '>=', now());
+
         // Filter bidang
         if ($request->filled('bidang')) {
             $query->where('bidang', 'like', '%' . $request->bidang . '%');
@@ -241,6 +268,8 @@ class ProgramController extends Controller
                 'cover_image'  => $p->cover_image ? asset($p->cover_image) : null,
                 'kuota'        => $p->kuota,
                 'enrolled'     => $p->enrollments_count,
+                'registrasi_mulai'   => $p->registrasi_mulai?->format('d M Y'),
+                'registrasi_selesai' => $p->registrasi_selesai?->format('d M Y'),
                 'tanggal_mulai'   => $p->tanggal_mulai?->format('d M Y'),
                 'tanggal_selesai' => $p->tanggal_selesai?->format('d M Y'),
             ];
@@ -253,12 +282,17 @@ class ProgramController extends Controller
     public function detail(string $id)
     {
         $program = Program::published()
-            ->with(['mitra', 'tasks', 'mentors.user'])
+            ->with(['mitra', 'tasks'])
             ->withCount('enrollments')
             ->findOrFail($id);
 
         // Cek apakah pelajar sudah enroll
         $enrolled = false;
+
+        $approvedMentors = $program->mentors()
+            ->wherePivot('status', 'disetujui')
+            ->with('user')
+            ->get();
         if (session('role') === 'pelajar') {
             $enrolled = $program->enrollments()
                 ->where('pelajar_id', session('user_id'))
@@ -278,6 +312,9 @@ class ProgramController extends Controller
                 'kuota'        => $program->kuota,
                 'enrolled'     => $program->enrollments_count,
                 'is_full'      => $program->isFull(),
+                'registrasi_mulai'     => $program->registrasi_mulai?->format('d M Y'),
+                'registrasi_selesai'   => $program->registrasi_selesai?->format('d M Y'),
+                'is_registration_open' => $program->isRegistrationOpen(),
                 'tanggal_mulai'   => $program->tanggal_mulai?->format('d M Y'),
                 'tanggal_selesai' => $program->tanggal_selesai?->format('d M Y'),
                 'tasks'        => $program->tasks->map(fn($t) => [
@@ -286,7 +323,7 @@ class ProgramController extends Controller
                     'urutan'  => $t->urutan,
                     'deadline'=> $t->deadline?->format('d M Y H:i'),
                 ]),
-                'mentors' => $program->mentors->map(fn($m) => [
+                'mentors' => $approvedMentors->map(fn($m) => [
                     'nama'    => $m->user->nama_lengkap,
                     'profesi' => $m->profesi,
                 ]),
@@ -372,5 +409,122 @@ class ProgramController extends Controller
             'status' => 'success',
             'data' => $leaderboard
         ]);
+    }
+
+    /**
+     * POST /api/mitra/mentor-applications/{id}/review
+     * Approve or reject a mentor application.
+     * {id} is the program_mentors pivot row ID.
+     */
+    public function reviewMentorApplication(Request $request, string $id)
+    {
+        $request->validate([
+            'status' => 'required|in:disetujui,ditolak',
+        ]);
+
+        $user = $this->getUser();
+
+        // Find the application pivot row
+        $application = DB::table('program_mentors')
+            ->where('id', $id)
+            ->first();
+
+        if (! $application) {
+            return response()->json(['status' => 'error', 'message' => 'Lamaran tidak ditemukan.'], 404);
+        }
+
+        // Verify the program belongs to this Mitra
+        $program = Program::where('id', $application->program_id)
+            ->where('mitra_id', $user->mitra->id)
+            ->first();
+
+        if (! $program) {
+            return response()->json(['status' => 'error', 'message' => 'Program tidak ditemukan.'], 404);
+        }
+
+        // BL-A04/A05: Status must be 'pending' to change
+        if ($application->status !== 'pending') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Status lamaran sudah final dan tidak dapat diubah.',
+            ], 422);
+        }
+
+        // BL-D05: Verify domain affiliation
+        $mentor = Mentor::find($application->mentor_id);
+        if (! $mentor || $mentor->mitra_id !== $user->mitra->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Mentor tidak terafiliasi dengan perusahaan Anda.',
+            ], 403);
+        }
+
+        // Update application status
+        DB::table('program_mentors')
+            ->where('id', $id)
+            ->update([
+                'status'      => $request->status,
+                'reviewed_at' => now(),
+            ]);
+
+        // Send notification to mentor
+        $statusLabel = $request->status === 'disetujui' ? 'disetujui' : 'ditolak';
+        \App\Models\Notification::create([
+            'id'      => (string) Str::uuid(),
+            'user_id' => $mentor->user_id,
+            'type'    => 'application_' . $statusLabel,
+            'data'    => [
+                'title'   => 'Lamaran ' . ucfirst($statusLabel),
+                'message' => 'Lamaran Anda untuk program ' . $program->judul . ' telah ' . $statusLabel . '.',
+                'link'    => '/pages/mentor/dashboard',
+            ],
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Lamaran mentor berhasil ' . $statusLabel . '!',
+        ]);
+    }
+
+    /**
+     * GET /api/mitra/mentor-applications
+     * List all mentor applications for programs owned by this Mitra.
+     */
+    public function mentorApplications(Request $request)
+    {
+        $user = $this->getUser();
+        $mitraId = $user->mitra->id;
+
+        $query = DB::table('program_mentors')
+            ->join('programs', 'program_mentors.program_id', '=', 'programs.id')
+            ->join('mentor', 'program_mentors.mentor_id', '=', 'mentor.id')
+            ->join('users', 'mentor.user_id', '=', 'users.id')
+            ->where('programs.mitra_id', $mitraId)
+            ->select(
+                'program_mentors.id',
+                'program_mentors.status',
+                'program_mentors.applied_at',
+                'program_mentors.reviewed_at',
+                'programs.id as program_id',
+                'programs.judul as program_judul',
+                'users.nama_lengkap as mentor_nama',
+                'users.email as mentor_email',
+                'mentor.profesi as mentor_profesi',
+                'mentor.tahun_pengalaman as mentor_tahun_pengalaman'
+            );
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('program_mentors.status', $request->status);
+        }
+
+        // Filter by program
+        if ($request->filled('program_id')) {
+            $query->where('program_mentors.program_id', $request->program_id);
+        }
+
+        $applications = $query->orderByDesc('program_mentors.applied_at')->get();
+
+        return response()->json(['status' => 'success', 'data' => $applications]);
     }
 }

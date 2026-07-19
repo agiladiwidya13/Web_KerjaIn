@@ -178,6 +178,11 @@ class SubmissionController extends Controller
         $submissions = $query->orderByDesc('created_at')
             ->get()
             ->map(function ($s) {
+                $fileUrl = $s->file_url;
+                if ($fileUrl && !str_starts_with($fileUrl, 'http')) {
+                    $fileUrl = asset($fileUrl);
+                }
+
                 return [
                     'id'          => $s->id,
                     'task_judul'  => $s->task->judul,
@@ -185,7 +190,7 @@ class SubmissionController extends Controller
                     'pelajar'     => $s->enrollment->pelajar->nama_lengkap,
                     'status'      => $s->status,
                     'catatan'     => $s->catatan,
-                    'file_url'    => $s->file_url,
+                    'file_url'    => $fileUrl,
                     'feedback'    => $s->feedback,
                     'nilai'       => $s->nilai,
                     'created_at'  => $s->created_at?->format('d M Y H:i'),
@@ -224,24 +229,6 @@ class SubmissionController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        // Fase 4: Gamifikasi (Poin)
-        if ($request->status === 'disetujui' && $request->nilai > 0) {
-            PoinLog::create([
-                'id' => (string) Str::uuid(),
-                'pelajar_id' => $submission->enrollment->pelajar_id,
-                'jumlah' => (int) $request->nilai,
-                'keterangan' => 'Menyelesaikan task: ' . $submission->task->judul,
-                'referensi_type' => 'submission',
-                'referensi_id' => $submission->id,
-                'created_at' => now(),
-            ]);
-            
-            $pelajarModel = Pelajar::where('user_id', $submission->enrollment->pelajar_id)->first();
-            if ($pelajarModel) {
-                $pelajarModel->increment('total_poin', (int) $request->nilai);
-            }
-        }
-
         // Fase 4: Notifikasi
         Notification::create([
             'id' => (string) Str::uuid(),
@@ -279,7 +266,7 @@ class SubmissionController extends Controller
         $totalTasks    = $enrollment->program->tasks->count();
         $approvedTasks = $enrollment->submissions->where('status', 'disetujui')->count();
 
-        if ($totalTasks > 0 && $approvedTasks >= $totalTasks) {
+        if ($totalTasks > 0 && $approvedTasks >= $totalTasks && $enrollment->status !== 'selesai') {
             $enrollment->update([
                 'status'    => 'selesai',
                 'selesai_at'=> now(),
@@ -305,6 +292,32 @@ class SubmissionController extends Controller
                     'issued_at' => now(),
                 ]
             );
+
+            $points = 100;
+            if ($totalTasks > 3) {
+                $points += ($totalTasks - 3) * 20;
+            }
+
+            $alreadyLogged = PoinLog::where('referensi_type', 'enrollment')
+                ->where('referensi_id', $enrollment->id)
+                ->exists();
+
+            if (! $alreadyLogged) {
+                PoinLog::create([
+                    'id' => (string) Str::uuid(),
+                    'pelajar_id' => $enrollment->pelajar_id,
+                    'jumlah' => $points,
+                    'keterangan' => 'Menuntaskan program: ' . $enrollment->program->judul . ' (' . $totalTasks . ' tugas)',
+                    'referensi_type' => 'enrollment',
+                    'referensi_id' => $enrollment->id,
+                    'created_at' => now(),
+                ]);
+
+                $pelajarModel = Pelajar::where('user_id', $enrollment->pelajar_id)->first();
+                if ($pelajarModel) {
+                    $pelajarModel->increment('total_poin', $points);
+                }
+            }
         }
     }
 }
