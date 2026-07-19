@@ -149,6 +149,12 @@ Setelah menjalankan seeder database (`php artisan db:seed` atau import database 
 | :--- | :--- | :--- | :--- | :--- |
 | **🏢 Mitra** | HR Telkom Indonesia | `hr@telkom.co.id` | `password123` | Akun mitra PT Telkom Indonesia. |
 | **👨‍🏫 Mentor** | Budi Mentor Telkom | `budi.mentor@telkom.co.id` | `password123` | Mentor pembimbing program PT Telkom Indonesia. |
+| **🎓 Pelajar** | Rian Pelajar | `rian@student.com` | `password123` | Pelajar magang terdaftar di program Telkom. |
+| **🎓 Pelajar** | Sinta Pelajar | `sinta@student.com` | `password123` | Pelajar magang terdaftar di program Telkom. |
+| **🎓 Pelajar** | Adit Pelajar | `adit@student.com` | `password123` | Pelajar magang terdaftar di program Telkom. |
+| **🎓 Pelajar** | Dewi Pelajar | `dewi@student.com` | `password123` | Pelajar magang terdaftar di program Telkom. |
+| **🎓 Pelajar** | Fajar Pelajar | `fajar@student.com` | `password123` | Pelajar magang terdaftar di program Telkom. |
+| **🎓 Pelajar** | Lina Pelajar | `lina@student.com` | `password123` | Pelajar magang terdaftar di program Telkom. |
 
 ---
 
